@@ -1,0 +1,202 @@
+[
+  {
+    "id": 1,
+    "title": "Black Friday",
+    "periodStart": "2025-10-28T00:00:00.000Z",
+    "periodEnd": "2025-12-06T23:59:59.999Z",
+    "price": 234.89,
+    "commission": 45.99,
+    "url": "affi.ly/4jHX9IS",
+    "status": "active",
+    "externalUrl": "https://www.amazon.com.br/escova+secadora",
+    "tag": "Black Friday",
+    "category": "Geral",
+    "imageUrl": "/assets/campaigns/campaign-black-friday.png",
+    "creatives": [
+      {
+        "id": 1,
+        "type": "image",
+        "title": "Banner Principal - Black Friday",
+        "url": "/assets/campaigns/01.png"
+      },
+      {
+        "id": 2,
+        "type": "image",
+        "title": "Stories Instagram - Black Friday",
+        "url": "/assets/campaigns/02.png"
+      },
+      {
+        "id": 3,
+        "type": "image",
+        "title": "Post Quadrado - Black Friday",
+        "url": "/assets/campaigns/03.png"
+      },
+      {
+        "id": 4,
+        "type": "image",
+        "title": "Banner Secundário - Black Friday",
+        "url": "/assets/campaigns/04.png"
+      },
+      {
+        "id": 5,
+        "type": "image",
+        "title": "Thumbnail Video - Black Friday",
+        "url": "/assets/campaigns/05.png"
+      },
+      {
+        "id": 6,
+        "type": "image",
+        "title": "Post Feed - Black Friday",
+        "url": "/assets/campaigns/03.png"
+      },
+      {
+        "id": 7,
+        "type": "video",
+        "title": "Vídeo Promocional - Black Friday",
+        "thumbnail": "/assets/campaigns/01.png"
+      },
+      {
+        "id": 8,
+        "type": "video",
+        "title": "Stories Animado - Black Friday",
+        "thumbnail": "/assets/campaigns/05.png"
+      },
+      {
+        "id": 9,
+        "type": "video",
+        "title": "Reel Instagram - Black Friday",
+        "thumbnail": "/assets/campaigns/02.png"
+      },
+      {
+        "id": 10,
+        "type": "video",
+        "title": "Vídeo Curto - Black Friday",
+        "thumbnail": "/assets/campaigns/04.png"
+      }
+    ],
+    "products": [
+      {
+        "id": 1,
+        "name": "Lego Porsche 911 - Kit Construção",
+        "image": "/assets/products/lego-porsche.png",
+        "price": 1234.89,
+        "commissionPercentage": 8
+      },
+      {
+        "id": 2,
+        "name": "Fritadeira Elétrica Airfryer 5L",
+        "image": "/assets/products/airfryer.png",
+        "price": 599.9,
+        "commissionPercentage": 11
+      },
+      {
+        "id": 3,
+        "name": "PlayStation 5 Slim Digital",
+        "image": "/assets/products/ps5.png",
+        "price": 3499.0,
+        "commissionPercentage": 15
+      },
+      {
+        "id": 4,
+        "name": "Secador de Cabelos",
+        "image": "/assets/products/secador de cabelo.png",
+        "price": 109.99,
+        "commissionPercentage": 8
+      }
+    ]
+  },
+  {
+    "id": 2,
+    "title": "Casa Nova",
+    "periodStart": "2025-10-28T00:00:00.000Z",
+    "periodEnd": "2025-12-06T23:59:59.999Z",
+    "price": 99.99,
+    "commission": 20.0,
+    "url": "affi.ly/9dYU8HS",
+    "status": "active",
+    "externalUrl": "https://www.amazon.com.br/ckin2U",
+    "tag": "Promoção",
+    "category": "Casa e Decoração",
+    "imageUrl": "/assets/campaigns/campaign-new-home.png",
+    "creatives": [
+      {
+        "id": 11,
+        "type": "image",
+        "title": "Banner Principal - Casa Nova",
+        "url": "/assets/campaigns/04.png"
+      },
+      {
+        "id": 12,
+        "type": "image",
+        "title": "Stories Instagram - Casa Nova",
+        "url": "/assets/campaigns/01.png"
+      },
+      {
+        "id": 13,
+        "type": "image",
+        "title": "Post Quadrado - Casa Nova",
+        "url": "/assets/campaigns/02.png"
+      },
+      {
+        "id": 14,
+        "type": "image",
+        "title": "Banner Secundário - Casa Nova",
+        "url": "/assets/campaigns/05.png"
+      },
+      {
+        "id": 15,
+        "type": "image",
+        "title": "Post Feed - Casa Nova",
+        "url": "/assets/campaigns/01.png"
+      },
+      {
+        "id": 16,
+        "type": "video",
+        "title": "Vídeo Promocional - Casa Nova",
+        "thumbnail": "/assets/campaigns/03.png"
+      },
+      {
+        "id": 17,
+        "type": "video",
+        "title": "Stories Animado - Casa Nova",
+        "thumbnail": "/assets/campaigns/04.png"
+      },
+      {
+        "id": 18,
+        "type": "video",
+        "title": "Reel Instagram - Casa Nova",
+        "thumbnail": "/assets/campaigns/01.png"
+      }
+    ],
+    "products": [
+      {
+        "id": 1,
+        "name": "Escova Secadora",
+        "image": "/assets/products/escova secadora.png",
+        "price": 124.99,
+        "commissionPercentage": 10
+      },
+      {
+        "id": 2,
+        "name": "Ckin2U Eau de Toilette",
+        "image": "/assets/products/ckin2U.png",
+        "price": 99.99,
+        "commissionPercentage": 12
+      },
+      {
+        "id": 3,
+        "name": "Creamy Skincare Vitamina",
+        "image": "/assets/products/creamy skincare.png",
+        "price": 54.99,
+        "commissionPercentage": 11
+      },
+      {
+        "id": 4,
+        "name": "Escova Secadora Philco",
+        "image": "/assets/products/escova secadora philco.png",
+        "price": 229.99,
+        "commissionPercentage": 6
+      }
+    ]
+  }
+]

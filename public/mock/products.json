@@ -1,0 +1,57 @@
+[
+  {
+    "id": 1,
+    "name": "Escova Secadora",
+    "image": "/assets/products/escova secadora.png",
+    "price": 124.99,
+    "commissionPercentage": 10,
+    "sales": 124,
+    "clicks": 1100,
+    "revenue": 40496,
+    "commission": 7307.06
+  },
+  {
+    "id": 2,
+    "name": "Secador de Cabelos",
+    "image": "/assets/products/secador de cabelo.png",
+    "price": 109.99,
+    "commissionPercentage": 8,
+    "sales": 129,
+    "clicks": 1100,
+    "revenue": 37145,
+    "commission": 7019.62
+  },
+  {
+    "id": 3,
+    "name": "Creamy Skincare Vitamina",
+    "image": "/assets/products/creamy skincare.png",
+    "price": 54.99,
+    "commissionPercentage": 11,
+    "sales": 55,
+    "clicks": 1100,
+    "revenue": 40496,
+    "commission": 6524.39
+  },
+  {
+    "id": 4,
+    "name": "Escova Secadora Philco",
+    "image": "/assets/products/escova secadora philco.png",
+    "price": 229.99,
+    "commissionPercentage": 6,
+    "sales": 23,
+    "clicks": 1100,
+    "revenue": 34496,
+    "commission": 6299.49
+  },
+  {
+    "id": 5,
+    "name": "Ckin2U Eau de Toilette",
+    "image": "/assets/products/ckin2U.png",
+    "price": 99.99,
+    "commissionPercentage": 12,
+    "sales": 11,
+    "clicks": 1100,
+    "revenue": 24746,
+    "commission": 5624.55
+  }
+]

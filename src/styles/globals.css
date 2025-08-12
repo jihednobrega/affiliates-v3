@@ -1,0 +1,80 @@
+@tailwind utilities;
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+
+  .scrollbar-none {
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+
+  .scrollbar-none::-webkit-scrollbar {
+    display: none;
+  }
+
+  .bg-button-gradient {
+    background: linear-gradient(180deg, #f5f9fe 47.86%, #d5e9ff 123.81%);
+    box-shadow:
+      0px 0px 0px 1px #99c7ff inset,
+      0px 0px 0px 2px #fff inset;
+  }
+
+  .bg-button-white-gradient {
+    background: linear-gradient(270deg, #fff 49.52%, transparent 100%);
+  }
+
+  .bg-sidebar-active {
+    background: linear-gradient(90deg, #eef1ff 0%, #fff 100%);
+    box-shadow: 0px 1px 1px 0px #000d353f;
+  }
+
+  .container-shadow {
+    box-shadow: 0px 1px 1px 0px #000d3526;
+  }
+}
+
+@import 'tailwindcss';
+
+:root {
+  --background: #ffffff;
+  --foreground: #171717;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: #0a0a0a;
+    --foreground: #ededed;
+  }
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+}
+
+@keyframes shimmer {
+  0% {
+    left: -100%;
+  }
+  100% {
+    left: 200%;
+  }
+}
+
+.shimmer-badge:hover .shimmer {
+  animation: shimmer 1.5s infinite;
+}
+
+.shimmer {
+  animation: shimmer 3s infinite;
+  animation-delay: 1s; /* Delay inicial */
+}

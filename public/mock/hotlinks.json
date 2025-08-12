@@ -1,0 +1,30 @@
+[
+  {
+    "id": "1",
+    "title": "Escova Secadora",
+    "price": "R$ 234,89",
+    "commission": "R$ 45,99",
+    "url": "affi.ly/4jHX9IS",
+    "externalUrl": "https://www.amazon.com.br/escova+secadora",
+    "earnings": "3.147,96",
+    "clicks": "2.200",
+    "orders": "200",
+    "conversion": "12%",
+    "tag": "Black Friday",
+    "imageUrl": "/assets/products/escova secadora.png"
+  },
+  {
+    "id": "2",
+    "title": "Ckin2U Eau de Toilette",
+    "price": "R$ 99,99",
+    "commission": "R$ 20,00",
+    "url": "affi.ly/9dYU8HS",
+    "externalUrl": "https://www.amazon.com.br/ckin2U",
+    "earnings": "1.045,50",
+    "clicks": "1.000",
+    "orders": "150",
+    "conversion": "15%",
+    "tag": "Promoção",
+    "imageUrl": "/assets/products/ckin2U.png"
+  }
+]
