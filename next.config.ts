@@ -3,6 +3,9 @@ const nextConfig = {
   images: {
     unoptimized: true,
   },
+  experimental: {
+    appDir: false,
+  },
   output: 'export',
   reactStrictMode: false,
   distDir: 'build',
