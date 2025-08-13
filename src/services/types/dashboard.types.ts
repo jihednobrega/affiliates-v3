@@ -183,13 +183,24 @@ export type RankingProduct = {
   clicks?: number
   revenue?: number
 
-  hasRealData?: boolean
-  matchedCommissions?: number
+  commissionValue?: number
+  totalCommissions?: number
+
   totalCommissionEarned?: number
   totalCommissionEarnedFormatted?: string
-  totalOrdersFromFinances?: number
   averageCommissionPerOrder?: number
+  uniqueCustomersCount?: number
+  averageOrderValue?: number
+  averageOrderValueFormatted?: string
   performanceScore?: number
+  conversionRate?: number
+  isPopular?: boolean
+  isHighValue?: boolean
+  hasRecurrency?: boolean
+  hasRealData?: boolean
+  matchedCommissions?: number
+  productKey?: string
+  relatedCommissions?: any[]
 }
 
 export interface ProcessedMetric {

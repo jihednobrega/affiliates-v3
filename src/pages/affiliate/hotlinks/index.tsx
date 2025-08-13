@@ -15,10 +15,10 @@ import {
 import { LinkEditIcon } from '@/components/CustomIcons'
 import { CreateLinkDrawer } from '@/components/CreateLinkModal/CreateLinkDrawer'
 import { Calendar, Search, SlidersHorizontal, Link } from 'lucide-react'
-import { HotlinkCard } from '@/components/HotlinkCard'
 import { useMockData } from '@/hooks/useMockData'
 import { useSearch } from '@/hooks/useSearch'
 import { LoadingState, EmptyState, ErrorState } from '@/components/ui'
+import { HotlinkCard } from '@/components/HotlinkCard'
 
 type Hotlink = {
   id: string
@@ -141,6 +141,13 @@ export default function HotLinks() {
                 color="#fff"
                 bgGradient="linear-gradient(180deg, #559DFF -27.08%, #1854DD 123.81%);"
                 shadow="0px 0px 0px 1px #0055F4, 0px -1px 0px 0px rgba(0, 56, 169, 0.30) inset, 0px 1px 1px 0px rgba(255, 255, 255, 0.60) inset"
+                _hover={{
+                  bgGradient:
+                    'linear-gradient(180deg, #6BA6FF -27.08%, #2A65E8 123.81%)',
+                  shadow:
+                    '0px 0px 0px 1px #1F70F1, 0px -1px 0px 0px rgba(0, 56, 169, 0.40) inset, 0px 1px 1px 0px rgba(255, 255, 255, 0.70) inset',
+                }}
+                transition="all 0.2s ease"
               >
                 Criar Link
               </Button>
@@ -183,7 +190,10 @@ export default function HotLinks() {
                 />
               </HStack>
             </Box>
-            <HStack gap={2} justify="space-between">
+            <HStack
+              gap={2}
+              justify={{ base: 'space-between', md: 'flex-start' }}
+            >
               <Button
                 rounded={4}
                 size="sm"
@@ -191,14 +201,14 @@ export default function HotLinks() {
                 fontWeight={500}
                 px={3}
                 py={1.5}
-                w="full"
+                w={{ base: 'full', md: 'auto' }}
                 gap={1.5}
                 bgGradient="linear-gradient(180deg, #f5f9fe 47.86%, #d5e9ff 123.81%)"
                 shadow="0px 0px 0px 1px #99c7ff inset, 0px 0px 0px 2px #fff inset"
                 color="#131D53"
               >
                 <Calendar size={16} />
-                FIltrar por Data
+                Filtrar por Data
               </Button>
               <Button
                 rounded={4}
@@ -207,7 +217,7 @@ export default function HotLinks() {
                 fontWeight={500}
                 px={3}
                 py={1.5}
-                w="full"
+                w={{ base: 'full', md: 'auto' }}
                 gap={1.5}
                 bgGradient="linear-gradient(180deg, #f5f9fe 47.86%, #d5e9ff 123.81%)"
                 shadow="0px 0px 0px 1px #99c7ff inset, 0px 0px 0px 2px #fff inset"
@@ -244,9 +254,19 @@ export default function HotLinks() {
               }}
             />
           ) : (
-            filteredData.map((link, idx) => (
-              <HotlinkCard key={link.id || idx} {...link} />
-            ))
+            <Box
+              display="grid"
+              gridTemplateColumns={{
+                base: '1fr',
+                md: 'repeat(2, 1fr)',
+                lg: 'repeat(3, 1fr)',
+              }}
+              gap={4}
+            >
+              {filteredData.map((link, idx) => (
+                <HotlinkCard key={link.id || idx} {...link} />
+              ))}
+            </Box>
           )}
         </PageContent>
       </AppLayout>

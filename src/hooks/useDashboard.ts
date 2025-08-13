@@ -5,7 +5,8 @@ import { DateRange } from '@/types/dashboard.types'
 import { formatCurrency } from '@/utils/currency'
 import { dateRangeToApiParams } from '@/utils/dashboardUtils'
 import { processMetrics } from '@/utils/metrics'
-import { ProductType, RankingProduct } from '@/services/types/dashboard.types'
+import { RankingProduct } from '@/services/types/dashboard.types'
+import { useFinances } from '@/hooks/useFinances'
 
 const CACHE_CONFIG = {
   staleTime: 5 * 60 * 1000,
@@ -74,14 +75,12 @@ export const useDashboard = (dateRange?: DateRange) => {
   })
 
   const {
-    data: productsData,
+    data: financesData,
     isLoading: isLoadingProducts,
-    error: productsError,
     refetch: refetchProducts,
-  } = useQuery({
-    queryKey: ['dashboard', 'products'],
-    queryFn: () => dashboardService.getProducts(),
-    ...CACHE_CONFIG,
+  } = useFinances({
+    page: 1,
+    perPage: 100,
   })
 
   const processedMetrics = useMemo(() => {
@@ -93,31 +92,82 @@ export const useDashboard = (dateRange?: DateRange) => {
   }, [metricsData])
 
   const processedProducts = useMemo(() => {
-    if (!productsData?.response?.data?.list) {
+    if (!financesData?.commissions) {
       return []
     }
 
-    const products: ProductType[] = productsData.response.data.list
+    const productSalesMap = new Map<
+      string,
+      {
+        id: number
+        name: string
+        image: string
+        price: number
+        commission_percentage: number
+        commission_value: number
+        count: number
+        totalCommissions: number
+        totalRevenue: number
+        commissions: typeof financesData.commissions
+        uniqueCustomers: Set<string>
+        firstCommission: (typeof financesData.commissions)[0]
+      }
+    >()
 
-    return products.map(
-      (product): RankingProduct => ({
-        id: product.id,
-        name: product.name,
-        image: product.image,
-        price: Number(product.price),
-        commission: Number(product.commission),
-        url: product.url,
-        short_url: product.short_url,
+    financesData.commissions.forEach((commission) => {
+      const productKey = commission.name.toLowerCase().trim()
 
-        sales: undefined,
+      if (!productSalesMap.has(productKey)) {
+        productSalesMap.set(productKey, {
+          id: commission.id,
+          name: commission.name,
+          image: commission.image,
+          price: parseFloat(commission.product_price) || 0,
+          commission_percentage:
+            parseFloat(commission.commission_percentage) || 0,
+          commission_value: parseFloat(commission.commission) || 0,
+          count: 0,
+          totalCommissions: 0,
+          totalRevenue: 0,
+          commissions: [],
+          uniqueCustomers: new Set(),
+          firstCommission: commission,
+        })
+      }
+
+      const productData = productSalesMap.get(productKey)!
+
+      productData.count++
+      productData.totalCommissions += parseFloat(commission.commission) || 0
+      productData.totalRevenue += parseFloat(commission.product_price) || 0
+      productData.commissions.push(commission)
+      productData.uniqueCustomers.add(commission.customer || 'unknown')
+    })
+
+    const productsArray = Array.from(productSalesMap.values()).map(
+      (productData): RankingProduct => ({
+        id: productData.id,
+        name: productData.name,
+        image: productData.image,
+        price: productData.price,
+        commission: productData.commission_percentage,
+        url: undefined,
+        short_url: undefined,
         clicks: undefined,
-        revenue:
-          Math.floor(
-            ((Number(product.price) * Number(product.commission)) / 100) * 100,
-          ) / 100,
+        sales: productData.count,
+        revenue: productData.totalRevenue,
+        totalCommissions: productData.totalCommissions,
+        commissionValue: productData.commission_value,
       }),
     )
-  }, [productsData])
+
+    return productsArray.sort((a, b) => {
+      if (b.sales !== a.sales) {
+        return (b.sales || 0) - (a.sales || 0)
+      }
+      return (b.totalCommissions || 0) - (a.totalCommissions || 0)
+    })
+  }, [financesData])
 
   const isLoadingAny = useMemo(
     () =>
@@ -172,8 +222,8 @@ export const useDashboard = (dateRange?: DateRange) => {
 
     productsData: processedProducts,
     isLoadingProducts,
-    productsError,
-    hasProductsData: !!productsData?.response?.data?.list,
+    productsError: undefined,
+    hasProductsData: !!financesData?.commissions,
     refetchProducts,
 
     loadMetrics: refetchMetrics,

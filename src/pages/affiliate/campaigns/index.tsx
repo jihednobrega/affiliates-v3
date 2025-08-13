@@ -5,10 +5,10 @@ import { PageHeader, PageContent } from '@/components/PageHeader'
 import Head from 'next/head'
 import { Box, Button, Flex, HStack, Input, Text } from '@chakra-ui/react'
 import { Calendar, Megaphone, Search, SlidersHorizontal } from 'lucide-react'
-import { CampaignCard } from '@/components/CampaignCard'
 import { useMockData } from '@/hooks/useMockData'
 import { useSearch } from '@/hooks/useSearch'
 import { LoadingState, EmptyState, ErrorState } from '@/components/ui'
+import { CampaignCard } from '@/components/CampaignCard'
 
 interface Campaign {
   id: number
@@ -176,7 +176,10 @@ export default function Campaigns() {
               </HStack>
             </Box>
 
-            <HStack gap={2} justify="space-between">
+            <HStack
+              gap={2}
+              justify={{ base: 'space-between', md: 'flex-start' }}
+            >
               <Button
                 rounded={4}
                 size="sm"
@@ -184,7 +187,7 @@ export default function Campaigns() {
                 fontWeight={500}
                 px={3}
                 py={1.5}
-                w="full"
+                w={{ base: 'full', md: 'auto' }}
                 gap={1.5}
                 bgGradient="linear-gradient(180deg, #f5f9fe 47.86%, #d5e9ff 123.81%)"
                 shadow="0px 0px 0px 1px #99c7ff inset, 0px 0px 0px 2px #fff inset"
@@ -200,7 +203,7 @@ export default function Campaigns() {
                 fontWeight={500}
                 px={3}
                 py={1.5}
-                w="full"
+                w={{ base: 'full', md: 'auto' }}
                 gap={1.5}
                 bgGradient="linear-gradient(180deg, #f5f9fe 47.86%, #d5e9ff 123.81%)"
                 shadow="0px 0px 0px 1px #99c7ff inset, 0px 0px 0px 2px #fff inset"
@@ -232,17 +235,42 @@ export default function Campaigns() {
               description="Novas campanhas aparecerão aqui quando forem disponibilizadas. Acompanhe regularmente para não perder oportunidades!"
             />
           ) : (
-            filteredData.map((campaign) => (
-              <CampaignCard
-                key={campaign.id}
-                id={campaign.id}
-                title={campaign.title}
-                periodStart={formatDate(campaign.periodStart)}
-                periodEnd={formatDate(campaign.periodEnd)}
-                imageUrl={campaign.imageUrl}
-                products={campaign.products}
-              />
-            ))
+            <>
+              <Box display={{ base: 'block', md: 'none' }}>
+                {filteredData.map((campaign) => (
+                  <CampaignCard
+                    key={campaign.id}
+                    id={campaign.id}
+                    title={campaign.title}
+                    periodStart={formatDate(campaign.periodStart)}
+                    periodEnd={formatDate(campaign.periodEnd)}
+                    imageUrl={campaign.imageUrl}
+                    products={campaign.products}
+                  />
+                ))}
+              </Box>
+
+              <Box
+                display={{ base: 'none', md: 'grid' }}
+                gridTemplateColumns={{
+                  md: 'repeat(2, 1fr)',
+                  xl: 'repeat(3, 1fr)',
+                }}
+                gap={4}
+              >
+                {filteredData.map((campaign) => (
+                  <CampaignCard
+                    key={campaign.id}
+                    id={campaign.id}
+                    title={campaign.title}
+                    periodStart={formatDate(campaign.periodStart)}
+                    periodEnd={formatDate(campaign.periodEnd)}
+                    imageUrl={campaign.imageUrl}
+                    products={campaign.products}
+                  />
+                ))}
+              </Box>
+            </>
           )}
         </PageContent>
       </AppLayout>

@@ -19,34 +19,35 @@ import { AuthSigninRequest } from '@/services/types/auth.types'
 
 export default function Login() {
   const { signin, isLoading } = useAuth()
-  const [email, setEmail] = useState("")
-  const [password, setPassword] = useState("")
-  const [error, setError] = useState("")
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
+  const [error, setError] = useState('')
   const toast = useToast()
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
-    setError("")
+    setError('')
 
     const values: AuthSigninRequest = { email, password }
 
     signin(values, {
       onError: (error: any) => {
-        const errorMessage = error.response?.data?.message || "Erro ao fazer login"
+        const errorMessage =
+          error.response?.data?.message || 'Erro ao fazer login'
         setError(errorMessage)
         toast({
-          title: "Erro no login",
+          title: 'Erro no login',
           description: errorMessage,
-          status: "error",
+          status: 'error',
           duration: 5000,
           isClosable: true,
         })
       },
       onSuccess: () => {
         toast({
-          title: "Login realizado com sucesso!",
-          description: "Redirecionando...",
-          status: "success",
+          title: 'Login realizado com sucesso!',
+          description: 'Redirecionando...',
+          status: 'success',
           duration: 3000,
           isClosable: true,
         })
@@ -59,20 +60,33 @@ export default function Login() {
       <Head>
         <title>Login | Affiliates</title>
       </Head>
-      <Box bg="#021165" h={12} display="flex" alignItems="center" p={2}>
+      <Box
+        bg="#021165"
+        h={{ base: 12, lg: '72px' }}
+        display="flex"
+        alignItems="center"
+        p={2}
+      >
         <img src="/assets/affiliates.svg" alt="affiliates logo" />
       </Box>
       <Box
         as="main"
         width="full"
-        height="calc(100vh - 48px)"
+        height="calc(100vh - 72px)"
         display="flex"
         justifyContent="center"
         flexDirection="column"
         padding={6}
         bg="white"
       >
-        <Flex width="full" mb="auto">
+        <Flex
+          width={{ base: 'full', md: '400px' }}
+          maxWidth="400px"
+          mt={{ lg: '60px' }}
+          mb="auto"
+          mx="auto"
+          justifyContent="center"
+        >
           <Stack as="form" width="full" spacing={4} onSubmit={handleSubmit}>
             <Stack px={2} width="full" spacing={2}>
               <Heading fontSize="2xl" color="#131D53">

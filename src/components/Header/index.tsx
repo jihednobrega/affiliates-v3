@@ -14,7 +14,6 @@ import {
   MenuDivider,
   Portal,
   Skeleton,
-  SkeletonCircle,
   Spinner,
 } from '@chakra-ui/react'
 import { MenuButton } from './MenuButton'
@@ -71,6 +70,14 @@ export function Header({ onOpen }: HeaderProps) {
       <Flex h={8} align="center" justify="space-between">
         <Flex gap={3} align="center" h={8}>
           <MenuButton onOpen={onOpen} />
+          <Box display={{ base: 'none', md: 'block' }}>
+            <Image
+              src="/assets/affiliates.svg"
+              alt="affiliates logo"
+              width={155}
+              height={30}
+            />
+          </Box>
         </Flex>
         <Flex h="full" gap={3} align="center">
           <Button

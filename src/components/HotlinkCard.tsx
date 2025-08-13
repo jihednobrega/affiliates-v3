@@ -62,7 +62,6 @@ export function HotlinkCard({
   imageUrl,
 }: HotlinkCardProps) {
   const [copied, setCopied] = useState(false)
-  const [isChecked, setChecked] = useState(false)
   const [isShareOpen, setIsShareOpen] = useState(false)
   const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false)
   const { isOpen, onOpen, onClose } = useDisclosure()
@@ -86,7 +85,7 @@ export function HotlinkCard({
       setCopied(true)
       setTimeout(() => setCopied(false), 1200)
     } catch (err) {
-      console.error('Failed to copy: ', err)
+      console.error('Erro ao copiar o link:', err)
     }
   }
 
@@ -101,7 +100,15 @@ export function HotlinkCard({
   }
 
   return (
-    <Box borderRadius="md" bg="white" borderWidth={1} borderColor="#DEE6F2">
+    <Box
+      borderRadius="md"
+      bg="white"
+      borderWidth={1}
+      borderColor="#DEE6F2"
+      height="fit-content"
+      display="flex"
+      flexDirection="column"
+    >
       <Box p={3} borderBottomWidth={1} borderBottomColor="#E6E6E6">
         <Flex justify="space-between" mb={2} gap={2}>
           <Flex align="center" gap={2}>
@@ -120,7 +127,7 @@ export function HotlinkCard({
               {title}
             </Text>
           </Flex>
-          <Box
+          {/* <Box
             as="button"
             onClick={() => setChecked((prev) => !prev)}
             display="flex"
@@ -137,7 +144,7 @@ export function HotlinkCard({
                 ? '0px 3px 3px 0px rgba(77, 81, 98, 0.25), 0px 0px 4px 2px rgba(200, 237, 255, 0.60) inset'
                 : '0px 3px 3px 0px rgba(77, 81, 98, 0.25)'
             }
-          />
+          /> */}
         </Flex>
 
         <HStack>
@@ -179,48 +186,117 @@ export function HotlinkCard({
           </Text>
         </VStack>
 
-        <Flex direction="column" gap={2} fontSize="xs" color="#131D53" mb={6}>
-          <HStack gap={2.5}>
-            <div className="bg-[#dfefff] w-6 h-6 flex items-center justify-center rounded-sm p-0.5">
-              <img src="/assets/icons/commissions.svg" />
-            </div>
-            <Text fontSize="xs" color="#131D5399">
-              Ganhos{' '}
-              <strong className="text-[#131D53] font-[400]">
-                R$ {earnings}
-              </strong>
-            </Text>
-          </HStack>
-          <HStack gap={2.5}>
-            <div className="bg-[#dfefff] w-6 h-6 flex items-center justify-center rounded-sm p-0.5">
-              <img src="/assets/icons/cursor-click.svg" />
-            </div>
-            <Text fontSize="xs" color="#131D5399">
-              Cliques{' '}
-              <strong className="text-[#131D53] font-[400]">{clicks}</strong>
-            </Text>
-          </HStack>
-          <HStack gap={2.5}>
-            <div className="bg-[#dfefff] w-6 h-6 flex items-center justify-center rounded-sm p-0.5">
-              <img src="/assets/icons/handbag-success.svg" />
-            </div>
-            <Text fontSize="xs" color="#131D5399">
-              Pedidos{' '}
-              <strong className="text-[#131D53] font-[400]">{orders}</strong>
-            </Text>
-          </HStack>
-          <HStack gap={2.5}>
-            <div className="bg-[#dfefff] w-6 h-6 flex items-center justify-center rounded-sm p-0.5">
-              <img src="/assets/icons/percent-circle.svg" />
-            </div>
-            <Text fontSize="xs" color="#131D5399">
-              Conversão{' '}
-              <strong className="text-[#131D53] font-[400]">
-                {conversion}
-              </strong>
-            </Text>
-          </HStack>
-        </Flex>
+        <Box mb={6}>
+          <Box
+            display={{ base: 'none', md: 'grid' }}
+            gridTemplateColumns="repeat(2, 1fr)"
+            gap={2}
+            fontSize="xs"
+            color="#131D53"
+          >
+            <HStack gap={2}>
+              <div className="bg-[#dfefff] w-5 h-5 flex items-center justify-center rounded-sm p-0.5">
+                <img src="/assets/icons/commissions.svg" />
+              </div>
+              <VStack align="start" spacing={0} flex={1}>
+                <Text fontSize="10px" color="#131D5399">
+                  Ganhos
+                </Text>
+                <Text fontSize="xs" fontWeight={500}>
+                  R$ {earnings}
+                </Text>
+              </VStack>
+            </HStack>
+            <HStack gap={2}>
+              <div className="bg-[#dfefff] w-5 h-5 flex items-center justify-center rounded-sm p-0.5">
+                <img src="/assets/icons/cursor-click.svg" />
+              </div>
+              <VStack align="start" spacing={0} flex={1}>
+                <Text fontSize="10px" color="#131D5399">
+                  Cliques
+                </Text>
+                <Text fontSize="xs" fontWeight={500}>
+                  {clicks}
+                </Text>
+              </VStack>
+            </HStack>
+            <HStack gap={2}>
+              <div className="bg-[#dfefff] w-5 h-5 flex items-center justify-center rounded-sm p-0.5">
+                <img src="/assets/icons/handbag-success.svg" />
+              </div>
+              <VStack align="start" spacing={0} flex={1}>
+                <Text fontSize="10px" color="#131D5399">
+                  Pedidos
+                </Text>
+                <Text fontSize="xs" fontWeight={500}>
+                  {orders}
+                </Text>
+              </VStack>
+            </HStack>
+            <HStack gap={2}>
+              <div className="bg-[#dfefff] w-5 h-5 flex items-center justify-center rounded-sm p-0.5">
+                <img src="/assets/icons/percent-circle.svg" />
+              </div>
+              <VStack align="start" spacing={0} flex={1}>
+                <Text fontSize="10px" color="#131D5399">
+                  Conversão
+                </Text>
+                <Text fontSize="xs" fontWeight={500}>
+                  {conversion}
+                </Text>
+              </VStack>
+            </HStack>
+          </Box>
+
+          <Flex
+            direction="column"
+            gap={2}
+            fontSize="xs"
+            color="#131D53"
+            display={{ base: 'flex', md: 'none' }}
+          >
+            <HStack gap={2.5}>
+              <div className="bg-[#dfefff] w-6 h-6 flex items-center justify-center rounded-sm p-0.5">
+                <img src="/assets/icons/commissions.svg" />
+              </div>
+              <Text fontSize="xs" color="#131D5399">
+                Ganhos{' '}
+                <strong className="text-[#131D53] font-[400]">
+                  R$ {earnings}
+                </strong>
+              </Text>
+            </HStack>
+            <HStack gap={2.5}>
+              <div className="bg-[#dfefff] w-6 h-6 flex items-center justify-center rounded-sm p-0.5">
+                <img src="/assets/icons/cursor-click.svg" />
+              </div>
+              <Text fontSize="xs" color="#131D5399">
+                Cliques{' '}
+                <strong className="text-[#131D53] font-[400]">{clicks}</strong>
+              </Text>
+            </HStack>
+            <HStack gap={2.5}>
+              <div className="bg-[#dfefff] w-6 h-6 flex items-center justify-center rounded-sm p-0.5">
+                <img src="/assets/icons/handbag-success.svg" />
+              </div>
+              <Text fontSize="xs" color="#131D5399">
+                Pedidos{' '}
+                <strong className="text-[#131D53] font-[400]">{orders}</strong>
+              </Text>
+            </HStack>
+            <HStack gap={2.5}>
+              <div className="bg-[#dfefff] w-6 h-6 flex items-center justify-center rounded-sm p-0.5">
+                <img src="/assets/icons/percent-circle.svg" />
+              </div>
+              <Text fontSize="xs" color="#131D5399">
+                Conversão{' '}
+                <strong className="text-[#131D53] font-[400]">
+                  {conversion}
+                </strong>
+              </Text>
+            </HStack>
+          </Flex>
+        </Box>
 
         {tag && (
           <Badge
@@ -242,91 +318,147 @@ export function HotlinkCard({
         )}
       </Box>
 
-      <HStack
-        justify="space-between"
-        borderTopWidth={1}
-        borderTopColor="#E6E6E6"
-        p={3}
-      >
-        <Button
-          px={3}
-          py={1.5}
-          leftIcon={copied ? <Check size={16} /> : <Copy size={16} />}
-          size="sm"
-          fontSize="xs"
-          borderRadius="md"
-          color="#131D53"
-          bgGradient="linear-gradient(180deg, #f5f9fe 47.86%, #d5e9ff 123.81%)"
-          shadow="0px 0px 0px 1px #99c7ff inset, 0px 0px 0px 2px #fff inset"
-          onClick={handleCopy}
-        >
-          {copied ? 'Link Copiado!' : 'Copiar Link'}
-        </Button>
-
-        <Button
-          px={3}
-          py={1.5}
-          leftIcon={<Share2 size={16} />}
-          size="sm"
-          fontSize="xs"
-          borderRadius="md"
-          color="#131D53"
-          bgGradient="linear-gradient(180deg, #f5f9fe 47.86%, #d5e9ff 123.81%)"
-          shadow="0px 0px 0px 1px #99c7ff inset, 0px 0px 0px 2px #fff inset"
-          onClick={() => setIsShareOpen(true)}
-        >
-          Compartilhar Link
-        </Button>
-        {isOpen && (
-          <Box
-            position="fixed"
-            top={0}
-            left={0}
-            right={0}
-            bottom={0}
-            bg="blackAlpha.500"
-            zIndex={11}
-            onClick={onClose}
-          />
-        )}
-        <Menu isOpen={isOpen}>
-          <MenuButton
-            as={IconButton}
+      <Box borderTopWidth={1} borderTopColor="#E6E6E6" p={3} mt="auto">
+        <HStack display={{ base: 'none', md: 'flex' }} gap={2}>
+          <Button
             px={3}
             py={1.5}
-            icon={<MoreHorizontal size={16} />}
-            aria-label="Mais"
+            leftIcon={copied ? <Check size={12} /> : <Copy size={16} />}
             size="sm"
+            fontSize="12px"
             borderRadius="md"
-            flex={1}
-            zIndex={9}
+            color="#131D53"
             bgGradient="linear-gradient(180deg, #f5f9fe 47.86%, #d5e9ff 123.81%)"
             shadow="0px 0px 0px 1px #99c7ff inset, 0px 0px 0px 2px #fff inset"
-            onClick={onOpen}
-          />
-          <MenuList
-            color="#131d53"
-            fontSize="sm"
-            fontWeight={500}
-            gap={5}
-            onMouseLeave={onClose}
+            onClick={handleCopy}
           >
-            <MenuItem
-              icon={<ChartNoAxesColumnIncreasing size={20} />}
-              onClick={() => {
-                router.push(`/affiliate/hotlinks/${id}`)
-                onClose()
-              }}
+            {copied ? 'Copiado!' : 'Copiar Link'}
+          </Button>
+          <Button
+            px={3}
+            py={1.5}
+            leftIcon={<Share2 size={16} />}
+            size="sm"
+            fontSize="12px"
+            borderRadius="md"
+            color="#131D53"
+            bgGradient="linear-gradient(180deg, #f5f9fe 47.86%, #d5e9ff 123.81%)"
+            shadow="0px 0px 0px 1px #99c7ff inset, 0px 0px 0px 2px #fff inset"
+            onClick={() => setIsShareOpen(true)}
+          >
+            Compartilhar Link
+          </Button>
+          <Button
+            px={3}
+            py={1.5}
+            leftIcon={<ChartNoAxesColumnIncreasing size={16} />}
+            size="sm"
+            fontSize="12px"
+            borderRadius="md"
+            color="#131D53"
+            bgGradient="linear-gradient(180deg, #f5f9fe 47.86%, #d5e9ff 123.81%)"
+            shadow="0px 0px 0px 1px #99c7ff inset, 0px 0px 0px 2px #fff inset"
+            onClick={() => router.push(`/affiliate/hotlinks/${id}`)}
+          >
+            Ver Detalhes
+          </Button>
+          <Button
+            px={3}
+            py={1.5}
+            leftIcon={<Trash2 size={16} />}
+            size="sm"
+            fontSize="12px"
+            borderRadius="md"
+            color="#E53E3E"
+            bgGradient="linear-gradient(180deg, #fef5f5 47.86%, #fed7d7 123.81%)"
+            shadow="0px 0px 0px 1px #fc8181 inset, 0px 0px 0px 2px #fff inset"
+          >
+            Deletar
+          </Button>
+        </HStack>
+
+        <HStack justify="space-between" display={{ base: 'flex', md: 'none' }}>
+          <Button
+            px={3}
+            py={1.5}
+            leftIcon={copied ? <Check size={16} /> : <Copy size={16} />}
+            size="sm"
+            fontSize="xs"
+            borderRadius="md"
+            color="#131D53"
+            bgGradient="linear-gradient(180deg, #f5f9fe 47.86%, #d5e9ff 123.81%)"
+            shadow="0px 0px 0px 1px #99c7ff inset, 0px 0px 0px 2px #fff inset"
+            onClick={handleCopy}
+          >
+            {copied ? 'Link Copiado!' : 'Copiar Link'}
+          </Button>
+
+          <Button
+            px={3}
+            py={1.5}
+            leftIcon={<Share2 size={16} />}
+            size="sm"
+            fontSize="xs"
+            borderRadius="md"
+            color="#131D53"
+            bgGradient="linear-gradient(180deg, #f5f9fe 47.86%, #d5e9ff 123.81%)"
+            shadow="0px 0px 0px 1px #99c7ff inset, 0px 0px 0px 2px #fff inset"
+            onClick={() => setIsShareOpen(true)}
+          >
+            Compartilhar Link
+          </Button>
+
+          {isOpen && (
+            <Box
+              position="fixed"
+              top={0}
+              left={0}
+              right={0}
+              bottom={0}
+              bg="blackAlpha.500"
+              zIndex={11}
+              onClick={onClose}
+            />
+          )}
+          <Menu isOpen={isOpen}>
+            <MenuButton
+              as={IconButton}
+              px={3}
+              py={1.5}
+              icon={<MoreHorizontal size={16} />}
+              aria-label="Mais"
+              size="sm"
+              borderRadius="md"
+              flex={1}
+              zIndex={9}
+              bgGradient="linear-gradient(180deg, #f5f9fe 47.86%, #d5e9ff 123.81%)"
+              shadow="0px 0px 0px 1px #99c7ff inset, 0px 0px 0px 2px #fff inset"
+              onClick={onOpen}
+            />
+            <MenuList
+              color="#131d53"
+              fontSize="sm"
+              fontWeight={500}
+              gap={5}
+              onMouseLeave={onClose}
             >
-              Ver Detalhes do Link
-            </MenuItem>
-            <MenuDivider />
-            <MenuItem icon={<Trash2 size={20} onClick={onClose} />}>
-              Deletar Link
-            </MenuItem>
-          </MenuList>
-        </Menu>
-      </HStack>
+              <MenuItem
+                icon={<ChartNoAxesColumnIncreasing size={20} />}
+                onClick={() => {
+                  router.push(`/affiliate/hotlinks/${id}`)
+                  onClose()
+                }}
+              >
+                Ver Detalhes do Link
+              </MenuItem>
+              <MenuDivider />
+              <MenuItem icon={<Trash2 size={20} />} onClick={onClose}>
+                Deletar Link
+              </MenuItem>
+            </MenuList>
+          </Menu>
+        </HStack>
+      </Box>
       <ShareModal
         isOpen={isShareOpen}
         onClose={() => setIsShareOpen(false)}

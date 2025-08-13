@@ -25,7 +25,7 @@ export default function Ranking() {
       <div className="flex flex-col gap-3 p-3 pb-4 border border-[#dee6f2] bg-white rounded-xl overflow-hidden container-shadow">
         <h2 className="text-sm text-[#131d53] px-3">Meu Ranking</h2>
         <Box textAlign="center" py={8} color="red.500">
-          <Text>Erro ao carregar produtos: {productsError.message}</Text>
+          <Text>Erro ao carregar produtos</Text>
         </Box>
       </div>
     )

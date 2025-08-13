@@ -1,4 +1,4 @@
-import { Box, VStack, Text, Icon, useColorModeValue } from '@chakra-ui/react'
+import { Box, Text, useColorModeValue } from '@chakra-ui/react'
 import { memo, useMemo } from 'react'
 import { MissionCard } from '../../types/missions'
 import {
@@ -59,12 +59,22 @@ const MissionGridCardComponent: React.FC<MissionGridCardProps> = ({
       as="button"
       onClick={onClick}
       display="flex"
-      w={MISSION_SIZES.card.width}
+      w={{
+        base: MISSION_SIZES.card.width,
+        md: 'full',
+      }}
+      h={{
+        base: 'auto',
+        md: '112px',
+      }}
       p={MISSION_SPACING.card.padding}
       flexDirection="column"
-      justifyContent="center"
+      justifyContent="start"
       alignItems="flex-start"
-      gap={MISSION_SPACING.card.gap}
+      gap={{
+        base: MISSION_SPACING.card.gap,
+        md: 0,
+      }}
       borderRadius={MISSION_SPACING.card.borderRadius}
       border={cardStyles.border}
       bgGradient={cardStyles.background.replace('linear-gradient', 'linear')}
@@ -107,39 +117,103 @@ const MissionGridCardComponent: React.FC<MissionGridCardProps> = ({
         transition="opacity 0.2s"
       />
 
-      <Box position="relative">{card.icon}</Box>
+      <Box display={{ base: 'block', md: 'none' }} position="relative">
+        <Box position="relative" mb={MISSION_SPACING.card.gap}>
+          {card.icon}
+        </Box>
 
-      <Box position="relative" textAlign="start">
-        <Text
-          fontSize="xs"
-          color={MISSION_COLORS.text.white}
-          lineHeight="12px"
-          mb={1}
+        <Box position="relative" textAlign="start">
+          <Text
+            fontSize="xs"
+            color={MISSION_COLORS.text.white}
+            lineHeight="12px"
+            mb={1}
+          >
+            {card.title}
+          </Text>
+
+          {card.subtitle && (
+            <Text
+              fontSize="md"
+              fontWeight="semibold"
+              lineHeight="16px"
+              color={MISSION_COLORS.text.white}
+            >
+              {card.subtitle}
+            </Text>
+          )}
+
+          {card.count !== undefined && (
+            <Text
+              fontSize="md"
+              fontWeight="semibold"
+              lineHeight="16px"
+              color={MISSION_COLORS.text.white}
+            >
+              {card.count}
+            </Text>
+          )}
+        </Box>
+      </Box>
+
+      <Box
+        display={{ base: 'none', md: 'flex' }}
+        alignItems="center"
+        w="full"
+        h="full"
+        position="relative"
+      >
+        <Box
+          position="relative"
+          flexShrink={0}
+          display="flex"
+          alignItems="center"
+          justifyContent="center"
+          ml={3}
+          mr={3}
         >
-          {card.title}
-        </Text>
+          <Box transform="scale(1.5)">{card.icon}</Box>
+        </Box>
 
-        {card.subtitle && (
+        <Box
+          position="relative"
+          textAlign="start"
+          flex={1}
+          ml={2}
+          mt={2}
+          alignSelf="flex-start"
+        >
           <Text
-            fontSize="md"
-            fontWeight="semibold"
-            lineHeight="16px"
+            fontSize="sm"
             color={MISSION_COLORS.text.white}
+            lineHeight="14px"
+            mb={1}
           >
-            {card.subtitle}
+            {card.title}
           </Text>
-        )}
 
-        {card.count !== undefined && (
-          <Text
-            fontSize="md"
-            fontWeight="semibold"
-            lineHeight="16px"
-            color={MISSION_COLORS.text.white}
-          >
-            {card.count}
-          </Text>
-        )}
+          {card.subtitle && (
+            <Text
+              fontSize="lg"
+              fontWeight="semibold"
+              lineHeight="20px"
+              color={MISSION_COLORS.text.white}
+            >
+              {card.subtitle}
+            </Text>
+          )}
+
+          {card.count !== undefined && (
+            <Text
+              fontSize="lg"
+              fontWeight="semibold"
+              lineHeight="20px"
+              color={MISSION_COLORS.text.white}
+            >
+              {card.count}
+            </Text>
+          )}
+        </Box>
       </Box>
     </Box>
   )

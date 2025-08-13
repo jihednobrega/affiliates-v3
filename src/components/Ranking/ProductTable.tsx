@@ -18,6 +18,7 @@ import {
   MenuItem,
   useToast,
   Portal,
+  Button,
 } from '@chakra-ui/react'
 import {
   ChevronsUpDown,
@@ -30,7 +31,11 @@ import {
 import { RankingProduct } from '@/services/types/dashboard.types'
 import { ShimmerBadge } from '@/components/ShimmerBadge'
 
-type ColumnKey = keyof RankingProduct | 'index'
+type ColumnKey =
+  | keyof RankingProduct
+  | 'index'
+  | 'commissionValue'
+  | 'totalCommissions'
 
 interface ProductTableProps {
   data: RankingProduct[]
@@ -65,7 +70,6 @@ export function ProductTable({ data }: ProductTableProps) {
         })
       }
     } catch (error) {
-      console.error('Erro ao copiar link:', error)
       toast({
         title: 'Erro ao copiar',
         description: 'Não foi possível copiar o link.',
@@ -159,12 +163,34 @@ export function ProductTable({ data }: ProductTableProps) {
               onClick={handleSort}
             />
             <ThSortable
+              title="Valor Comissão"
+              column="commissionValue"
+              sortKey={sortKey}
+              sortAsc={sortAsc}
+              onClick={handleSort}
+            />
+            <ThSortable
+              title="Vendas"
+              column="sales"
+              sortKey={sortKey}
+              sortAsc={sortAsc}
+              onClick={handleSort}
+            />
+            <ThSortable
+              title="Total Comissões"
+              column="totalCommissions"
+              sortKey={sortKey}
+              sortAsc={sortAsc}
+              onClick={handleSort}
+            />
+            <ThSortable
               title="Receita Gerada"
               column="revenue"
               sortKey={sortKey}
               sortAsc={sortAsc}
               onClick={handleSort}
             />
+
             <Th />
           </Tr>
         </Thead>
@@ -232,9 +258,74 @@ export function ProductTable({ data }: ProductTableProps) {
                   maximumFractionDigits: 2,
                 })}
               </Td>
-
               <Td px={4} textColor="#131D53">
-                <Box className="absolute w-[86px] h-15 right-0 bg-button-white-gradient flex items-center justify-end -translate-y-1/2 mr-[1px]">
+                {item.sales || 0}
+              </Td>
+              <Td px={4} textColor="#131D53">
+                R${' '}
+                {item.totalCommissions
+                  ? item.totalCommissions.toLocaleString('pt-BR', {
+                      minimumFractionDigits: 2,
+                      maximumFractionDigits: 2,
+                    })
+                  : '0,00'}
+              </Td>
+              <Td px={4} textColor="#131D53">
+                R${' '}
+                {item.revenue
+                  ? item.revenue.toLocaleString('pt-BR', {
+                      minimumFractionDigits: 2,
+                      maximumFractionDigits: 2,
+                    })
+                  : '0,00'}
+              </Td>
+              <Td px={4} textColor="#131D53">
+                <Flex
+                  display={{ base: 'none', md: 'flex' }}
+                  align="center"
+                  justify="end"
+                >
+                  <Button
+                    onClick={() => handleCopyLink(item)}
+                    bg="white"
+                    color="#131D53"
+                    fontSize="14px"
+                    fontWeight="500"
+                    h="32px"
+                    px="12px"
+                    py="6px"
+                    border="1px solid #DEE6F2"
+                    borderRadius="6px 0 0 6px"
+                    _hover={{ bg: 'gray.50' }}
+                    rightIcon={<Copy size={14} />}
+                    iconSpacing="6px"
+                  >
+                    Copiar Link
+                  </Button>
+                  <Button
+                    onClick={() => handleViewProduct(item)}
+                    bg="white"
+                    color="#131D53"
+                    fontSize="14px"
+                    fontWeight="500"
+                    h="32px"
+                    px="12px"
+                    py="6px"
+                    border="1px solid #DEE6F2"
+                    borderLeft="none"
+                    borderRadius="0 6px 6px 0"
+                    _hover={{ bg: 'gray.50' }}
+                    rightIcon={<ExternalLink size={14} />}
+                    iconSpacing="6px"
+                  >
+                    Ver Produto
+                  </Button>
+                </Flex>
+
+                <Box
+                  className="absolute w-[86px] h-15 right-0 bg-button-white-gradient flex items-center justify-end -translate-y-1/2 mr-[1px]"
+                  display={{ base: 'flex', md: 'none' }}
+                >
                   <Menu placement="auto" strategy="fixed">
                     <MenuButton
                       as={IconButton}

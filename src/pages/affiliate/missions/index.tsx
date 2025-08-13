@@ -222,6 +222,7 @@ const MissionsPage = () => {
           }
         />
 
+        {/* Conteúdo Principal */}
         <Box
           display="flex"
           flexDirection="column"
@@ -229,9 +230,16 @@ const MissionsPage = () => {
           p={3}
           mt={MISSION_SPACING.content.marginTop}
         >
+          {/* Grid de Cards - Mobile: 2x2, Desktop: 1x4 */}
           <Grid
-            templateColumns={MISSION_SPACING.grid.templateColumns}
-            gap={MISSION_SPACING.card.smallGap}
+            templateColumns={{
+              base: MISSION_SPACING.grid.templateColumns,
+              md: 'repeat(4, 1fr)',
+            }}
+            gap={{
+              base: MISSION_SPACING.card.smallGap,
+              md: '12px',
+            }}
           >
             {missionCards.map((card) => (
               <GridItem key={card.id}>
@@ -243,6 +251,7 @@ const MissionsPage = () => {
             ))}
           </Grid>
 
+          {/* Seção Missões Disponíveis */}
           <Box
             p={3}
             borderWidth={1}
@@ -250,32 +259,67 @@ const MissionsPage = () => {
             rounded={12}
             bgColor={MISSION_COLORS.backgrounds.white}
           >
-            <Text
-              fontSize="xl"
-              color={MISSION_COLORS.text.primary}
-              mb={3}
-              lineHeight={'120%'}
-            >
-              Affiliates Missions
-            </Text>
-            <HStack spacing={4} mb={3}>
-              <BadgeCounter
-                label="Completas:"
-                count={getCompletedMissions()}
-                type="success"
-                orientation="vertical"
-              />
-              <BadgeCounter
-                label="Disponíveis:"
-                count={getAvailableMissions()}
-                type="info"
-                orientation="vertical"
-              />
-            </HStack>
+            {/* Mobile: Layout original */}
+            <Box display={{ base: 'block', md: 'none' }}>
+              <Text
+                fontSize="xl"
+                color={MISSION_COLORS.text.primary}
+                mb={3}
+                lineHeight={'120%'}
+              >
+                Affiliates Missions
+              </Text>
+              <HStack spacing={4} mb={3}>
+                <BadgeCounter
+                  label="Completas:"
+                  count={getCompletedMissions()}
+                  type="success"
+                  orientation="vertical"
+                />
+                <BadgeCounter
+                  label="Disponíveis:"
+                  count={getAvailableMissions()}
+                  type="info"
+                  orientation="vertical"
+                />
+              </HStack>
+            </Box>
+
+            {/* Desktop: Layout otimizado */}
+            <Box display={{ base: 'none', md: 'block' }}>
+              <Flex justify="space-between" align="center" mb={3}>
+                <Text
+                  fontSize="xl"
+                  color={MISSION_COLORS.text.primary}
+                  lineHeight={'120%'}
+                >
+                  Affiliates Missions
+                </Text>
+                <HStack spacing={4}>
+                  <BadgeCounter
+                    label="Completas:"
+                    count={getCompletedMissions()}
+                    type="success"
+                    orientation="horizontal"
+                  />
+                  <BadgeCounter
+                    label="Disponíveis:"
+                    count={getAvailableMissions()}
+                    type="info"
+                    orientation="horizontal"
+                  />
+                </HStack>
+              </Flex>
+            </Box>
+
             <Grid
               bg={MISSION_COLORS.backgrounds.container}
               p={3}
-              templateColumns={MISSION_SPACING.grid.autoFill}
+              templateColumns={{
+                base: MISSION_SPACING.grid.autoFill,
+                md: 'repeat(3, 1fr)',
+                lg: 'repeat(4, 1fr)',
+              }}
               rounded={12}
               gap={MISSION_SPACING.card.smallGap}
             >
@@ -288,6 +332,7 @@ const MissionsPage = () => {
           </Box>
         </Box>
 
+        {/* Modais */}
         <CombosModal
           isOpen={isCombosOpen}
           onClose={onCombosClose}

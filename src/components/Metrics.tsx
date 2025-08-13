@@ -32,7 +32,7 @@ export function Metrics({ dateRange }: DashboardComponentProps) {
 
   if (isLoadingMetrics) {
     return (
-      <div className="grid grid-cols-2 gap-2">
+      <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
         {Array.from({ length: 6 }).map((_, index) => (
           <SkeletonCard key={index} />
         ))}
@@ -96,7 +96,7 @@ export function Metrics({ dateRange }: DashboardComponentProps) {
 
   return (
     <>
-      <div className="grid grid-cols-2 gap-2">
+      <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
         {processedMetrics.map((metric, index) => (
           <MetricCard
             key={`${metric.label}-${index}`}

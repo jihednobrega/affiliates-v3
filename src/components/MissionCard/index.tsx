@@ -1,6 +1,5 @@
 import {
   Box,
-  VStack,
   HStack,
   Text,
   Badge,
@@ -38,8 +37,14 @@ const MissionCardComponent: React.FC<MissionCardProps> = ({ mission }) => {
       borderWidth={1}
       borderColor={MISSION_COLORS.borders.default}
       w="full"
+      h={{
+        base: 'auto',
+        md: '360px',
+      }}
+      display="flex"
+      flexDirection="column"
     >
-      <VStack align="stretch" gap={0}>
+      <Box display="flex" flexDirection="column" flex={1}>
         <Flex
           justify="space-between"
           align="center"
@@ -101,7 +106,11 @@ const MissionCardComponent: React.FC<MissionCardProps> = ({ mission }) => {
           )}
         </Flex>
 
-        <Box p={3} borderBottomWidth={1} borderBottomColor="#DEE6F2">
+        <Box
+          p={3}
+          borderBottomWidth={{ base: 1, md: 0 }}
+          borderBottomColor="#DEE6F2"
+        >
           <HStack justify="space-between" mb={3}>
             <Text fontSize="sm" color="#131D5399">
               Progresso da missão
@@ -146,26 +155,35 @@ const MissionCardComponent: React.FC<MissionCardProps> = ({ mission }) => {
             {mission.description}
           </Text>
 
-          <HStack spacing={1}>
-            <Text fontSize="sm" fontWeight={500} color="#131D53">
-              Recompensa:
-            </Text>
-            <Box
-              bg="#F4F6F9"
-              px={3}
-              py={0.5}
-              borderRadius="full"
-              borderWidth={1}
-              borderColor="#C5CDDC"
-            >
-              <Text fontSize="xs" color="#676B8C">
-                {mission.reward}
+          <Box display={{ base: 'block', md: 'none' }}>
+            <HStack spacing={1}>
+              <Text fontSize="sm" fontWeight={500} color="#131D53">
+                Recompensa:
               </Text>
-            </Box>
-          </HStack>
+              <Box
+                bg="#F4F6F9"
+                px={3}
+                py={0.5}
+                borderRadius="full"
+                borderWidth={1}
+                borderColor="#C5CDDC"
+                maxWidth="150px"
+                overflow="hidden"
+              >
+                <Text
+                  fontSize="xs"
+                  color="#676B8C"
+                  noOfLines={1}
+                  title={mission.reward}
+                >
+                  {mission.reward}
+                </Text>
+              </Box>
+            </HStack>
+          </Box>
         </Box>
 
-        <Box p={3}>
+        <Box display={{ base: 'block', md: 'none' }} p={3}>
           <Button
             w="full"
             size="md"
@@ -180,7 +198,54 @@ const MissionCardComponent: React.FC<MissionCardProps> = ({ mission }) => {
             Ver detalhes
           </Button>
         </Box>
-      </VStack>
+
+        <Box
+          display={{ base: 'none', md: 'block' }}
+          mt="auto"
+          p={3}
+          borderTopWidth={1}
+          borderTopColor="#DEE6F2"
+        >
+          <HStack spacing={1} mb={3}>
+            <Text fontSize="sm" fontWeight={500} color="#131D53">
+              Recompensa:
+            </Text>
+            <Box
+              bg="#F4F6F9"
+              px={3}
+              py={0.5}
+              borderRadius="full"
+              borderWidth={1}
+              borderColor="#C5CDDC"
+              maxWidth="full"
+              overflow="hidden"
+            >
+              <Text
+                fontSize="xs"
+                color="#676B8C"
+                noOfLines={1}
+                title={mission.reward}
+              >
+                {mission.reward}
+              </Text>
+            </Box>
+          </HStack>
+
+          <Button
+            w="full"
+            size="md"
+            fontSize="xs"
+            fontWeight={400}
+            borderRadius="md"
+            color="#131D53"
+            bgGradient="linear-gradient(180deg, #f5f9fe 47.86%, #d5e9ff 123.81%)"
+            shadow="0px 0px 0px 1px #99c7ff inset, 0px 0px 0px 2px #fff inset"
+            onClick={handleViewDetails}
+          >
+            Ver detalhes
+          </Button>
+        </Box>
+      </Box>
     </Box>
   )
 }
