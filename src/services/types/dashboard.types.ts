@@ -45,10 +45,11 @@ export interface GetOrderEvolutionResponse
   extends DefaultResponse,
     ErrorResponse {
   data: {
-    pending: number
+    awaiting: number
+    new: number
     approved: number
     processing: number
-    invoiced: number
+    done: number
     canceled: number
   }
 }
@@ -185,6 +186,9 @@ export type RankingProduct = {
 
   commissionValue?: number
   totalCommissions?: number
+
+  linkData?: any
+  destination_url?: string
 
   totalCommissionEarned?: number
   totalCommissionEarnedFormatted?: string

@@ -5,16 +5,11 @@ import {
   ModalHeader,
   ModalFooter,
   ModalBody,
-  ModalCloseButton,
   VStack,
   HStack,
   Text,
-  Progress,
   Button,
   Box,
-  Grid,
-  GridItem,
-  Divider,
 } from '@chakra-ui/react'
 import { Level } from '../../types/missions'
 import { Medal } from 'lucide-react'
@@ -31,10 +26,6 @@ export const LevelModal: React.FC<LevelModalProps> = ({
   level,
 }) => {
   if (!level) return null
-
-  const progressPercentage = (level.sales / level.nextSales) * 100
-  const remainingSales = level.nextSales - level.sales
-
   return (
     <Modal isOpen={isOpen} onClose={onClose} size="xs" isCentered>
       <ModalOverlay />

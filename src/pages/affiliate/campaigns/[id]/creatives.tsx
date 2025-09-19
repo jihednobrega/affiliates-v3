@@ -20,8 +20,8 @@ import {
 } from '@chakra-ui/react'
 import { useRouter } from 'next/router'
 import Head from 'next/head'
-import { AppLayout } from '@/components/AppLayout'
-import { PageHeader, PageContent } from '@/components/PageHeader'
+import { AppLayout } from '@/components/Layout'
+import { PageHeader, PageContent } from '@/components/Layout/PageLayout'
 import {
   ChevronLeft,
   Download,
@@ -29,8 +29,8 @@ import {
   SquarePlay,
   Megaphone,
 } from 'lucide-react'
-import { ShimmerBadge } from '@/components/ShimmerBadge'
-import { SelectItemsIcon } from '@/components/CustomIcons/SelectItemsIcon'
+import { ShimmerBadge } from '@/components/UI/Badges'
+import { SelectItemsIcon } from '@/components/Icons'
 
 interface Campaign {
   id: number
@@ -80,7 +80,7 @@ export default function CampaignCreativesPage() {
     if (!campaign?.products || campaign.products.length === 0) return 0
 
     return Math.max(
-      ...campaign.products.map((product) => product.commissionPercentage),
+      ...campaign.products.map((product) => product.commissionPercentage)
     )
   }, [campaign?.products])
 
@@ -89,13 +89,17 @@ export default function CampaignCreativesPage() {
         {
           icon: 'ImageIcon',
           title: 'Fotos',
-          quantity: `${campaign.creatives.filter((c) => c.type === 'image').length}`,
+          quantity: `${
+            campaign.creatives.filter((c) => c.type === 'image').length
+          }`,
           items: campaign.creatives.filter((c) => c.type === 'image'),
         },
         {
           icon: 'SquarePlay',
           title: 'Vídeos',
-          quantity: `${campaign.creatives.filter((c) => c.type === 'video').length}`,
+          quantity: `${
+            campaign.creatives.filter((c) => c.type === 'video').length
+          }`,
           items: campaign.creatives.filter((c) => c.type === 'video'),
         },
       ]
@@ -103,7 +107,7 @@ export default function CampaignCreativesPage() {
 
   const totalItems = creatives.reduce(
     (acc, section) => acc + section.items.length,
-    0,
+    0
   )
   const imageCount =
     creatives.find((s) => s.title.includes('Fotos'))?.items.length || 0
@@ -115,6 +119,7 @@ export default function CampaignCreativesPage() {
 
     const loadCampaign = async () => {
       if (!id) {
+        console.warn('No campaignId provided')
         return
       }
 
@@ -129,6 +134,7 @@ export default function CampaignCreativesPage() {
         if (found) {
           setCampaign(found)
         } else {
+          console.error('Campaign not found:', id)
           toast({
             title: 'Campanha não encontrada',
             status: 'error',
@@ -137,7 +143,7 @@ export default function CampaignCreativesPage() {
           setTimeout(() => router.push('/affiliate/campaigns'), 2000)
         }
       } catch (error) {
-        console.error('Erro ao carregar campanha:', error)
+        console.error('Error loading campaign:', error)
         toast({
           title: 'Erro ao carregar campanha',
           description: 'Tente novamente mais tarde',

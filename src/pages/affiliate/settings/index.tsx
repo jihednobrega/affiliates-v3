@@ -1,8 +1,8 @@
-import { AppLayout } from '@/components/AppLayout'
-import { PageHeader, PageContent } from '@/components/PageHeader'
+import { AppLayout } from '@/components/Layout'
+import { PageHeader, PageContent } from '@/components/Layout/PageLayout'
 import Head from 'next/head'
 import { Box, Flex, Text } from '@chakra-ui/react'
-import { SettingsCogIcon } from '@/components/CustomIcons'
+import { SettingsCogIcon } from '@/components/Icons'
 
 export default function Settings() {
   return (

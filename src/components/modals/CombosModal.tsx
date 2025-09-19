@@ -5,7 +5,6 @@ import {
   ModalHeader,
   ModalFooter,
   ModalBody,
-  ModalCloseButton,
   VStack,
   HStack,
   Text,
@@ -13,7 +12,6 @@ import {
   Badge,
   Button,
   Box,
-  Icon,
 } from '@chakra-ui/react'
 import { Combo } from '../../types/missions'
 import { Flame, Zap } from 'lucide-react'

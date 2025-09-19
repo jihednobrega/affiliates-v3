@@ -1,4 +1,7 @@
-import { MainMetricsData, ProcessedMetric } from '@/services/types/dashboard.types'
+import {
+  MainMetricsData,
+  ProcessedMetric,
+} from '@/services/types/dashboard.types'
 
 /**
  * Utilitários para processamento de métricas do dashboard
@@ -30,7 +33,7 @@ export const getTrend = (growth: number): 'up' | 'down' | 'neutral' => {
  */
 export const processMetrics = (
   mainMetrics: MainMetricsData,
-  formatCurrency: (value: number) => string,
+  formatCurrency: (value: number) => string
 ): ProcessedMetric[] => {
   const conversionRate =
     mainMetrics.clicks.current_period > 0
@@ -41,7 +44,7 @@ export const processMetrics = (
 
   const conversionGrowth = calculateGrowth(
     mainMetrics.orders.current_period,
-    mainMetrics.orders.previous_period,
+    mainMetrics.orders.previous_period
   )
 
   return [
@@ -51,13 +54,13 @@ export const processMetrics = (
       displayText: mainMetrics.clicks.current_period.toString(),
       growth: calculateGrowth(
         mainMetrics.clicks.current_period,
-        mainMetrics.clicks.previous_period,
+        mainMetrics.clicks.previous_period
       ),
       trend: getTrend(
         calculateGrowth(
           mainMetrics.clicks.current_period,
-          mainMetrics.clicks.previous_period,
-        ),
+          mainMetrics.clicks.previous_period
+        )
       ),
       info: 'Total de cliques em seus links gerados durante o periodo selecionado.',
     },
@@ -67,13 +70,13 @@ export const processMetrics = (
       displayText: mainMetrics.orders.current_period.toString(),
       growth: calculateGrowth(
         mainMetrics.orders.current_period,
-        mainMetrics.orders.previous_period,
+        mainMetrics.orders.previous_period
       ),
       trend: getTrend(
         calculateGrowth(
           mainMetrics.orders.current_period,
-          mainMetrics.orders.previous_period,
-        ),
+          mainMetrics.orders.previous_period
+        )
       ),
       info: 'Total de pedidos realizados a partir de seus links durante o periodo selecionado.',
     },
@@ -91,13 +94,13 @@ export const processMetrics = (
       displayText: formatCurrency(mainMetrics.sales.current_period),
       growth: calculateGrowth(
         mainMetrics.sales.current_period,
-        mainMetrics.sales.previous_period,
+        mainMetrics.sales.previous_period
       ),
       trend: getTrend(
         calculateGrowth(
           mainMetrics.sales.current_period,
-          mainMetrics.sales.previous_period,
-        ),
+          mainMetrics.sales.previous_period
+        )
       ),
       info: 'Total em vendas geradas pelos seus links no periodo selecionado.',
     },
@@ -105,17 +108,17 @@ export const processMetrics = (
       label: 'Comissão Estimada',
       value: mainMetrics.estimated_commissions.current_period,
       displayText: formatCurrency(
-        mainMetrics.estimated_commissions.current_period,
+        mainMetrics.estimated_commissions.current_period
       ),
       growth: calculateGrowth(
         mainMetrics.estimated_commissions.current_period,
-        mainMetrics.estimated_commissions.previous_period,
+        mainMetrics.estimated_commissions.previous_period
       ),
       trend: getTrend(
         calculateGrowth(
           mainMetrics.estimated_commissions.current_period,
-          mainMetrics.estimated_commissions.previous_period,
-        ),
+          mainMetrics.estimated_commissions.previous_period
+        )
       ),
       info: 'Estimativa de comissao dos pedidos no periodo selecionado.',
     },
@@ -123,17 +126,17 @@ export const processMetrics = (
       label: 'Comissão Aprovada',
       value: mainMetrics.approved_commissions.current_period,
       displayText: formatCurrency(
-        mainMetrics.approved_commissions.current_period,
+        mainMetrics.approved_commissions.current_period
       ),
       growth: calculateGrowth(
         mainMetrics.approved_commissions.current_period,
-        mainMetrics.approved_commissions.previous_period,
+        mainMetrics.approved_commissions.previous_period
       ),
       trend: getTrend(
         calculateGrowth(
           mainMetrics.approved_commissions.current_period,
-          mainMetrics.approved_commissions.previous_period,
-        ),
+          mainMetrics.approved_commissions.previous_period
+        )
       ),
       info: 'Comissao aprovada sobre os pedidos confirmados no periodo.',
     },

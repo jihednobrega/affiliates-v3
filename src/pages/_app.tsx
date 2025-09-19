@@ -1,7 +1,7 @@
 import type { AppProps } from 'next/app'
 
 import '@/styles/globals.css'
-import Providers from '@/components/providers'
+import Providers from '@/providers'
 import { Geist, Geist_Mono } from 'next/font/google'
 
 const geistSans = Geist({

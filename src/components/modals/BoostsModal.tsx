@@ -5,7 +5,6 @@ import {
   ModalHeader,
   ModalFooter,
   ModalBody,
-  ModalCloseButton,
   VStack,
   HStack,
   Text,
@@ -15,7 +14,6 @@ import {
   Box,
   Card,
   CardBody,
-  Divider,
   CardFooter,
   CardHeader,
 } from '@chakra-ui/react'

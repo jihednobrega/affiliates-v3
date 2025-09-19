@@ -1,9 +1,7 @@
 import {
   Box,
-  VStack,
   HStack,
   Text,
-  Badge,
   Grid,
   GridItem,
   useDisclosure,
@@ -13,22 +11,24 @@ import {
 } from '@chakra-ui/react'
 import Head from 'next/head'
 import { useMemo } from 'react'
-import { AppLayout } from '../../../components/AppLayout'
-import { PageHeader } from '../../../components/common/PageHeader'
-import { BadgeCounter } from '../../../components/common/BadgeCounter'
-import { useMissions } from '../../../hooks/useMissions'
-import { MissionCard } from '../../../components/MissionCard'
-import { MissionGridCard } from '../../../components/MissionGridCard'
-import { CombosModal } from '../../../components/modals/CombosModal'
-import { BoostsModal } from '../../../components/modals/BoostsModal'
-import { LevelModal } from '../../../components/modals/LevelModal'
-import { MissionCard as MissionCardType } from '../../../types/missions'
+import { AppLayout } from '@/components/Layout'
+import { PageHeader, PageContent } from '@/components/Layout/PageLayout'
+import { BadgeCounter } from '@/components/UI/Badges'
+import { useMissions } from '@/hooks/useMissions'
+import {
+  MissionCard,
+  MissionGridCard,
+} from '@/components/Features/affiliate/missions'
+import { MissionCard as MissionCardType } from '@/types/missions'
 import {
   MISSION_COLORS,
   MISSION_SPACING,
   MISSION_SIZES,
-} from '../../../constants/missionTheme'
+} from '@/constants/missionTheme'
 import { Medal, Flame, Zap, Trophy } from 'lucide-react'
+import { CombosModal } from '@/components/Modals/CombosModal'
+import { BoostsModal } from '@/components/Modals/BoostsModal'
+import { LevelModal } from '@/components/Modals/LevelModal'
 
 const MissionsPage = () => {
   const {
@@ -158,7 +158,7 @@ const MissionsPage = () => {
         gradient: MISSION_COLORS.gradients.level,
       },
     ],
-    [combo?.streakDays, missions.length, level?.title, getTotalBoosts],
+    [combo?.streakDays, missions.length, level?.title, getTotalBoosts]
   )
 
   const handleCardClick = (cardType: string) => {
@@ -198,15 +198,14 @@ const MissionsPage = () => {
         <title>Missões | Affiliates</title>
       </Head>
       <AppLayout>
-        <PageHeader
-          title="Missões"
-          icon={
-            <Medal
-              size={MISSION_SIZES.icon.small}
-              color={MISSION_COLORS.text.primary}
-            />
-          }
-          rightContent={
+        <PageHeader>
+          <HStack spacing={3} align="center" justify="space-between" w="full">
+            <HStack spacing={2} align="center">
+              <Medal size={24} color="#131D53" />
+              <Text fontSize="sm" color="#131D53">
+                Missões
+              </Text>
+            </HStack>
             <HStack spacing={4}>
               <BadgeCounter
                 label="Completas:"
@@ -219,18 +218,10 @@ const MissionsPage = () => {
                 type="info"
               />
             </HStack>
-          }
-        />
+          </HStack>
+        </PageHeader>
 
-        {/* Conteúdo Principal */}
-        <Box
-          display="flex"
-          flexDirection="column"
-          gap={2.5}
-          p={3}
-          mt={MISSION_SPACING.content.marginTop}
-        >
-          {/* Grid de Cards - Mobile: 2x2, Desktop: 1x4 */}
+        <PageContent>
           <Grid
             templateColumns={{
               base: MISSION_SPACING.grid.templateColumns,
@@ -251,7 +242,6 @@ const MissionsPage = () => {
             ))}
           </Grid>
 
-          {/* Seção Missões Disponíveis */}
           <Box
             p={3}
             borderWidth={1}
@@ -259,7 +249,6 @@ const MissionsPage = () => {
             rounded={12}
             bgColor={MISSION_COLORS.backgrounds.white}
           >
-            {/* Mobile: Layout original */}
             <Box display={{ base: 'block', md: 'none' }}>
               <Text
                 fontSize="xl"
@@ -285,7 +274,6 @@ const MissionsPage = () => {
               </HStack>
             </Box>
 
-            {/* Desktop: Layout otimizado */}
             <Box display={{ base: 'none', md: 'block' }}>
               <Flex justify="space-between" align="center" mb={3}>
                 <Text
@@ -330,9 +318,8 @@ const MissionsPage = () => {
               ))}
             </Grid>
           </Box>
-        </Box>
+        </PageContent>
 
-        {/* Modais */}
         <CombosModal
           isOpen={isCombosOpen}
           onClose={onCombosClose}

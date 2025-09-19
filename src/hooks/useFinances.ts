@@ -4,12 +4,16 @@ import { FinancesService } from '@/services/finances'
 import {
   FinancesFilters,
   AffiliateFinancesData,
+  ExtractItem,
+  CommissionAffiliateList,
 } from '@/services/types/finances.types'
 import { formatCurrency } from '@/utils/currency'
 
+// Cache e configurações otimizadas
 const CACHE_CONFIG = {
-  staleTime: 3 * 60 * 1000,
-  gcTime: 10 * 60 * 1000,
+  staleTime: 3 * 60 * 1000, // 3 minutos - dados financeiros mudam com menos frequência
+  gcTime: 10 * 60 * 1000, // 10 minutos na memória
+  timeout: 30000, // TEMPORÁRIO: 30 segundos para usuários com muitos dados financeiros
 } as const
 
 export const useFinances = (initialFilters?: Partial<FinancesFilters>) => {
@@ -32,23 +36,12 @@ export const useFinances = (initialFilters?: Partial<FinancesFilters>) => {
     ...CACHE_CONFIG,
   })
 
-  const {
-    data: extractData,
-    isLoading: isLoadingExtract,
-    error: extractError,
-    refetch: refetchExtract,
-  } = useQuery({
-    queryKey: ['finances', 'extract', filters.page, filters.perPage],
-    queryFn: () =>
-      financesService.getAffiliateExtract({
-        page: filters.page,
-        perpage: filters.perPage,
-      }),
-    ...CACHE_CONFIG,
-  })
-
   const processedData = useMemo(() => {
-    if (!financesData?.response?.success || !financesData.response.data) {
+    if (
+      !financesData?.response?.success ||
+      !financesData.response.data ||
+      typeof financesData.response.data !== 'object'
+    ) {
       return null
     }
 
@@ -63,14 +56,14 @@ export const useFinances = (initialFilters?: Partial<FinancesFilters>) => {
         nextPayDate: data.next_pay_date,
 
         availableCommissionsFormatted: formatCurrency(
-          data.available_commissions,
+          data.available_commissions
         ),
         minimumWithdrawAmountFormatted: formatCurrency(
-          data.minimum_withdraw_amount,
+          data.minimum_withdraw_amount
         ),
         totalSalesFormatted: formatCurrency(data.total_sales),
         futureCommissionsFormatted: formatCurrency(
-          parseFloat(data.future_commissions || '0'),
+          parseFloat(data.future_commissions || '0')
         ),
       },
 
@@ -79,13 +72,6 @@ export const useFinances = (initialFilters?: Partial<FinancesFilters>) => {
       meta: data.meta,
     }
   }, [financesData])
-
-  const extractList = useMemo(() => {
-    if (!extractData?.response || !('data' in extractData.response)) {
-      return []
-    }
-    return extractData.response.data.list || []
-  }, [extractData])
 
   const updateFilters = (newFilters: Partial<FinancesFilters>) => {
     setFilters((prev) => ({ ...prev, ...newFilters }))
@@ -100,38 +86,57 @@ export const useFinances = (initialFilters?: Partial<FinancesFilters>) => {
   }
 
   const setProduct = (product?: string) => {
-    setFilters((prev) => ({ ...prev, product, page: 1 }))
+    setFilters((prev) => {
+      if (prev.product !== product) {
+        return { ...prev, product, page: 1 }
+      }
+      return prev
+    })
   }
 
-  const isLoading = isLoadingFinances || isLoadingExtract
-  const hasError = financesError || extractError
+  const isLoading = isLoadingFinances
+  const hasError = financesError
 
-  const exportFinances = async (period?: string, fields?: string) => {
-    const result = await FinancesService.getAffiliateFinancesExport({
-      period,
-      fields,
-    })
-    return result
+  const exportFinances = async (
+    period?: string,
+    fields?: string,
+    product?: string,
+    status?: string
+  ) => {
+    try {
+      const result = await FinancesService.getAffiliateFinancesExport({
+        period,
+        fields,
+        product,
+        status,
+      })
+      return result
+    } catch (error) {
+      console.error('Erro ao exportar finanças:', error)
+      throw error
+    }
   }
 
   const exportExtract = async (month?: string) => {
-    const result = await financesService.getAffiliateExtract({
-      month,
-      exportFile: true,
-    })
-    return result
+    try {
+      const result = await financesService.getAffiliateExtract({
+        month,
+        exportFile: true,
+      })
+      return result
+    } catch (error) {
+      console.error('Erro ao exportar extrato:', error)
+      throw error
+    }
   }
 
   return {
     data: processedData,
-    extractList,
 
     isLoading,
     isLoadingFinances,
-    isLoadingExtract,
     hasError,
     financesError,
-    extractError,
 
     filters,
     updateFilters,
@@ -140,11 +145,7 @@ export const useFinances = (initialFilters?: Partial<FinancesFilters>) => {
     setProduct,
 
     refetchFinances,
-    refetchExtract,
-    refetch: () => {
-      refetchFinances()
-      refetchExtract()
-    },
+    refetch: refetchFinances,
 
     exportFinances,
     exportExtract,
@@ -160,7 +161,6 @@ export const useFinancesSummary = () => {
       financesService.getAffiliateFinances({
         page: 1,
         perPage: 1,
-        listOnly: true,
       }),
     ...CACHE_CONFIG,
   })
@@ -180,14 +180,14 @@ export const useFinancesSummary = () => {
       nextPayDate: financesData.next_pay_date,
 
       availableCommissionsFormatted: formatCurrency(
-        financesData.available_commissions,
+        financesData.available_commissions
       ),
       minimumWithdrawAmountFormatted: formatCurrency(
-        financesData.minimum_withdraw_amount,
+        financesData.minimum_withdraw_amount
       ),
       totalSalesFormatted: formatCurrency(financesData.total_sales),
       futureCommissionsFormatted: formatCurrency(
-        parseFloat(financesData.future_commissions || '0'),
+        parseFloat(financesData.future_commissions || '0')
       ),
     }
   }, [data])

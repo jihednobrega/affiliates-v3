@@ -1,4 +1,4 @@
-import { Box, VStack, Text, Button, Alert, AlertIcon } from '@chakra-ui/react'
+import { Box, VStack, Text, Button, Alert } from '@chakra-ui/react'
 import { RefreshCw, AlertTriangle } from 'lucide-react'
 import { COLORS } from '@/constants/colors'
 

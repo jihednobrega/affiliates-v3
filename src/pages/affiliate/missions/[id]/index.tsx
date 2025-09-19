@@ -8,16 +8,17 @@ import {
   Button,
   Spinner,
   Center,
-  Image,
 } from '@chakra-ui/react'
 import Head from 'next/head'
 import { useRouter } from 'next/router'
-import { AppLayout } from '@/components/AppLayout'
-import { PageHeader } from '@/components/common/PageHeader'
+
+import { PageHeader, PageContent } from '@/components/Layout/PageLayout'
 import { useMissions } from '@/hooks/useMissions'
 import { useCountdown } from '@/hooks/useCountdown'
 import { MISSION_COLORS, MISSION_SPACING } from '@/constants/missionTheme'
 import { ChevronLeft, Zap } from 'lucide-react'
+import { AppLayout } from '@/components/Layout'
+import { ProductImage } from '@/components/UI'
 
 const MissionDetailsPage = () => {
   const router = useRouter()
@@ -77,12 +78,19 @@ const MissionDetailsPage = () => {
         <title>{mission.title} | Affiliates</title>
       </Head>
       <AppLayout>
-        <PageHeader
-          title={mission.title}
-          showBackButton
-          onBackClick={() => router.push('/affiliate/missions')}
-          icon={
-            mission.badgeImage && (
+        <PageHeader>
+          <HStack spacing={3} align="center">
+            <Button
+              variant="ghost"
+              onClick={() => router.push('/affiliate/missions')}
+              p={2}
+              minW="auto"
+              h="auto"
+              _hover={{ bg: 'gray.100' }}
+            >
+              <ChevronLeft size={20} />
+            </Button>
+            {mission.badgeImage && (
               <Box
                 w="32px"
                 h="32px"
@@ -96,19 +104,24 @@ const MissionDetailsPage = () => {
                 borderWidth={1}
                 borderColor={MISSION_COLORS.borders.card}
               >
-                <Image src={mission.badgeImage} alt={mission.title} h="30px" />
+                <ProductImage
+                  src={mission.badgeImage}
+                  alt={mission.title}
+                  height="30px"
+                />
               </Box>
-            )
-          }
-        />
+            )}
+            <Text
+              fontSize="lg"
+              fontWeight="semibold"
+              color={MISSION_COLORS.text.primary}
+            >
+              {mission.title}
+            </Text>
+          </HStack>
+        </PageHeader>
 
-        <Box
-          p={MISSION_SPACING.card.padding}
-          display="flex"
-          flexDirection="column"
-          gap={MISSION_SPACING.card.gap}
-          mt={MISSION_SPACING.content.marginTopLarge}
-        >
+        <PageContent>
           <Box
             borderRadius={MISSION_SPACING.card.borderRadius}
             border={`1px solid ${MISSION_COLORS.borders.default}`}
@@ -276,11 +289,11 @@ const MissionDetailsPage = () => {
                     alignItems="center"
                     justifyContent="center"
                   >
-                    <Image
+                    <ProductImage
                       src={mission.badgeImage}
                       alt={mission.title}
-                      w="full"
-                      h="full"
+                      width="full"
+                      height="full"
                       objectFit="cover"
                     />
                   </Box>
@@ -364,7 +377,7 @@ const MissionDetailsPage = () => {
               </Box>
             </Box>
           </Box>
-        </Box>
+        </PageContent>
       </AppLayout>
     </>
   )

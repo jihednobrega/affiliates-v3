@@ -61,7 +61,7 @@ export const getPreviousPeriod = (period: string): string => {
 
 export const calcularVariacaoPercentual = (
   atual: number,
-  anterior: number,
+  anterior: number
 ): number => {
   if (anterior === 0) return atual > 0 ? 100 : 0
   return ((atual - anterior) / anterior) * 100
@@ -74,7 +74,7 @@ export const formatDateSafe = (dateString: string): string => {
 
 export const getPreviousPeriodFromDateRange = (
   startDate: string,
-  endDate: string,
+  endDate: string
 ): string => {
   const formatDate = (date: Date): string => date.toISOString().split('T')[0]
   const start = new Date(startDate)
@@ -100,7 +100,7 @@ export const dateRangeToApiParams = (dateRange: DateRange) => {
   const interval = `${dateRange.start_date}:${dateRange.end_date}`
   const previous = getPreviousPeriodFromDateRange(
     dateRange.start_date,
-    dateRange.end_date,
+    dateRange.end_date
   )
 
   return {
@@ -111,7 +111,7 @@ export const dateRangeToApiParams = (dateRange: DateRange) => {
 
 export const periodToApiParams = (
   selectedPeriod: string,
-  customDateRange?: DateRange,
+  customDateRange?: DateRange
 ) => {
   if (selectedPeriod === 'custom' && customDateRange) {
     return dateRangeToApiParams(customDateRange)
