@@ -36,6 +36,8 @@ export interface CommissionAffiliateList {
   customer: string
   vendor_order_id: string
   vendor_status: keyof VtexOrderstatus
+  status: string
+  coupon: string
   updated_at: string
 }
 

@@ -1,10 +1,11 @@
-import { AppLayout } from '@/components/AppLayout'
-import { PageHeader, PageContent } from '@/components/PageHeader'
+import { PageHeader, PageContent } from '@/components/Layout/PageLayout'
 import Head from 'next/head'
 import Image from 'next/image'
-import { Metrics } from '@/components/Metrics'
-import { Orders } from '@/components/Orders'
-import Ranking from '@/components/Ranking'
+import {
+  Metrics,
+  Orders,
+  Ranking,
+} from '@/components/Features/affiliate/dashboard'
 import {
   Box,
   Flex,
@@ -30,7 +31,8 @@ import {
 import { useState, useMemo } from 'react'
 import { DateRange } from '@/types/dashboard.types'
 import { getDateRanges, formatDateSafe } from '@/utils/dashboardUtils'
-import { SquaresFourIcon } from '@/components/CustomIcons'
+import { SquaresFourIcon } from '@/components/Icons'
+import { AppLayout } from '@/components/Layout'
 
 const PERIOD_OPTIONS = [
   ...getDateRanges(),
@@ -194,10 +196,11 @@ export default function Dashboard() {
 
         <PageContent>
           <Metrics dateRange={dateRange} />
-          <Orders />
+          <Orders dateRange={dateRange} />
           <Ranking />
         </PageContent>
 
+        {/* Modal para seleção de datas personalizadas */}
         <Modal isOpen={isOpen} onClose={handleCustomDateCancel} size="xs">
           <ModalOverlay />
           <ModalContent>

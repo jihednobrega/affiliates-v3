@@ -21,7 +21,7 @@ export class Auth {
     private brand: Brand | null = null,
     private balance: number = 0,
     private available_brands: Brand[] = [],
-    private vendor: string = '',
+    private vendor: string = ''
   ) {}
 
   public getName() {

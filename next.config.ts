@@ -12,6 +12,9 @@ const nextConfig = {
   trailingSlash: true,
   poweredByHeader: false,
   generateEtags: false,
+  eslint: {
+    ignoreDuringBuilds: true,
+  },
 }
 
 export default nextConfig

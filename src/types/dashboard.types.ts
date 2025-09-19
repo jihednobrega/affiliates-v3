@@ -1,6 +1,6 @@
 export interface DateRange {
-  start_date: string // Format: "YYYY-MM-DD"
-  end_date: string // Format: "YYYY-MM-DD"
+  start_date: string
+  end_date: string
 }
 
 export interface PeriodOption {

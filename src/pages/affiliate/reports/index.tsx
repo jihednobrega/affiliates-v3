@@ -1,9 +1,8 @@
-import { AppLayout } from '@/components/AppLayout'
-import { PageHeader, PageContent } from '@/components/PageHeader'
+import { AppLayout } from '@/components/Layout'
+import { PageHeader, PageContent } from '@/components/Layout/PageLayout'
 import Head from 'next/head'
-import Image from 'next/image'
 import { Box, Flex, Text } from '@chakra-ui/react'
-import { CustomBarIcon } from '@/components/CustomIcons'
+import { CustomBarIcon } from '@/components/Icons'
 
 export default function Settings() {
   return (

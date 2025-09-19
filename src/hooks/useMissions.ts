@@ -29,16 +29,19 @@ export const useMissions = () => {
           id: '2',
           title: 'Primeira venda do dia',
           badge: 'DIÁRIO',
+          badgeImage: '/assets/missions/mission-daily.png',
           progress: 1,
           total: 1,
           description: 'Faça sua primeira venda hoje',
           reward: 'R$ 50,00',
+          expiresIn: '1 dia',
           type: 'daily',
         },
         {
           id: '3',
           title: 'Campanha especial Natal',
           badge: 'NATAL',
+          badgeImage: '/assets/campaigns/campaign-christmas.png',
           progress: 2,
           total: 10,
           description: 'Participe da campanha especial de Natal',
@@ -115,16 +118,16 @@ export const useMissions = () => {
   const activateBoost = (boostId: string) => {
     setBoosts((prev) =>
       prev.map((boost) =>
-        boost.id === boostId ? { ...boost, isActive: true } : boost,
-      ),
+        boost.id === boostId ? { ...boost, isActive: true } : boost
+      )
     )
   }
 
   const deactivateBoost = (boostId: string) => {
     setBoosts((prev) =>
       prev.map((boost) =>
-        boost.id === boostId ? { ...boost, isActive: false } : boost,
-      ),
+        boost.id === boostId ? { ...boost, isActive: false } : boost
+      )
     )
   }
 

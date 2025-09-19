@@ -1,9 +1,8 @@
-import { AppLayout } from '@/components/AppLayout'
-import { PageHeader, PageContent } from '@/components/PageHeader'
+import { PageHeader, PageContent } from '@/components/Layout/PageLayout'
 import Head from 'next/head'
-import Image from 'next/image'
 import { Flex, Text } from '@chakra-ui/react'
 import { Star } from 'lucide-react'
+import { AppLayout } from '@/components/Layout'
 
 export default function Creatives() {
   return (

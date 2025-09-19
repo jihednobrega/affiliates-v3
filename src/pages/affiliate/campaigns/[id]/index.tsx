@@ -1,9 +1,10 @@
 'use client'
 
 import { useMemo } from 'react'
-import { useMockData } from '@/hooks/useMockData'
+import { useCampaignById } from '@/hooks/useCampaigns'
 import { useSearch } from '@/hooks/useSearch'
-import { LoadingState, EmptyState, ErrorState } from '@/components/ui'
+import { formatPercentage } from '@/utils/formatters'
+import { LoadingState, EmptyState, ErrorState } from '@/components/UI'
 import {
   Box,
   Text,
@@ -21,8 +22,8 @@ import {
 } from '@chakra-ui/react'
 import { useRouter } from 'next/router'
 import Head from 'next/head'
-import { AppLayout } from '@/components/AppLayout'
-import { PageHeader, PageContent } from '@/components/PageHeader'
+import { AppLayout } from '@/components/Layout'
+import { PageHeader, PageContent } from '@/components/Layout/PageLayout'
 import {
   ChevronRight,
   Megaphone,
@@ -32,27 +33,8 @@ import {
   Tags,
 } from 'lucide-react'
 import { ProductCard } from '@/components/ProductCard'
-import { CreativesIcon } from '@/components/CustomIcons'
-import { ShimmerBadge } from '@/components/ShimmerBadge'
-
-interface Campaign {
-  id: number
-  title: string
-  periodStart: string
-  periodEnd: string
-  status: string
-  category: string
-  imageUrl: string
-  products: Product[]
-}
-
-interface Product {
-  id: number
-  name: string
-  image: string
-  price: number
-  commissionPercentage: number
-}
+import { CreativesIcon } from '@/components/Icons'
+import { ShimmerBadge } from '@/components/UI/Badges'
 
 export default function CampaignDetailsPage() {
   const router = useRouter()
@@ -61,25 +43,28 @@ export default function CampaignDetailsPage() {
   const { isOpen, onToggle } = useDisclosure()
 
   const {
-    data: campaigns,
+    data: campaign,
     loading: campaignsLoading,
     error: campaignsError,
     retry,
-  } = useMockData<Campaign>('/mock/campaigns.json')
+  } = useCampaignById(id as string)
 
-  const campaign = useMemo(() => {
-    if (!campaigns.length || !id) return null
-    const found = campaigns.find((c) => c.id === Number(id))
-    if (!found && !campaignsLoading) {
+  useMemo(() => {
+    if (
+      !campaignsLoading &&
+      campaignsError &&
+      campaignsError.includes('não encontrada')
+    ) {
       toast({
         title: 'Campanha não encontrada',
+        description: 'A campanha solicitada não existe ou foi removida.',
         status: 'error',
-        duration: 3000,
+        duration: 4000,
+        isClosable: true,
       })
-      setTimeout(() => router.push('/affiliate/campaigns'), 2000)
+      setTimeout(() => router.push('/affiliate/campaigns'), 3000)
     }
-    return found || null
-  }, [campaigns, id, campaignsLoading, toast, router])
+  }, [campaignsError, campaignsLoading, toast, router])
 
   const {
     searchTerm,
@@ -92,12 +77,7 @@ export default function CampaignDetailsPage() {
     searchFields: ['name'],
   })
 
-  const maxCommission = useMemo(() => {
-    if (!campaign?.products || campaign.products.length === 0) return 0
-    return Math.max(
-      ...campaign.products.map((product) => product.commissionPercentage),
-    )
-  }, [campaign?.products])
+  const maxCommission = campaign?.maxCommission || 0
 
   if (!router.isReady || campaignsLoading) {
     return (
@@ -155,7 +135,7 @@ export default function CampaignDetailsPage() {
   return (
     <>
       <Head>
-        <title>Campanhas | Affiliates</title>
+        <title>{campaign?.title || 'Campanha'} | Affiliates</title>
       </Head>
       <AppLayout>
         <PageHeader>
@@ -169,8 +149,8 @@ export default function CampaignDetailsPage() {
                 <HStack>
                   <ShimmerBadge
                     icon={'/assets/icons/extra-commission.svg'}
-                    text="Até"
-                    percentage={`${maxCommission}%`}
+                    text="Comissões até"
+                    percentage={formatPercentage(maxCommission)}
                   />
                 </HStack>
               </Flex>
@@ -216,15 +196,7 @@ export default function CampaignDetailsPage() {
                 </Box>
                 <HStack>
                   <Text fontSize="xs" color="#131D53">
-                    De:{' '}
-                    {new Date(campaign.periodStart).toLocaleDateString(
-                      'pt-BR',
-                      {
-                        day: '2-digit',
-                        month: '2-digit',
-                        year: 'numeric',
-                      },
-                    )}
+                    De: {campaign.periodStart}
                   </Text>
                   <Divider
                     orientation="vertical"
@@ -234,12 +206,7 @@ export default function CampaignDetailsPage() {
                     bg="#131D5380"
                   />
                   <Text fontSize="xs" color="#131D53">
-                    Até:{' '}
-                    {new Date(campaign.periodEnd).toLocaleDateString('pt-BR', {
-                      day: '2-digit',
-                      month: '2-digit',
-                      year: 'numeric',
-                    })}
+                    Até: {campaign.periodEnd}
                   </Text>
                 </HStack>
               </HStack>
@@ -260,8 +227,8 @@ export default function CampaignDetailsPage() {
             <Collapse in={isOpen} animateOpacity>
               <VStack align="stretch" spacing={2} mt={3}>
                 <Text fontSize="13px" color="#131D5399">
-                  Aproveite a Black Friday com os maiores descontos do ano em
-                  nossos produtos exclusivos! Promoções por tempo limitado
+                  {campaign.description ||
+                    'Descrição não disponível para esta campanha.'}
                 </Text>
 
                 <VStack spacing={3} align="start" mb={3}>
@@ -272,7 +239,9 @@ export default function CampaignDetailsPage() {
                     <Text fontSize="sm" color="#131D5399">
                       Produtos em foco{' '}
                       <Text as="span" color="#131D53">
-                        {campaign.category}
+                        {campaign.products?.[0]?.name
+                          ? 'Diversos produtos'
+                          : 'Em carregamento...'}
                       </Text>
                     </Text>
                   </HStack>
@@ -349,6 +318,9 @@ export default function CampaignDetailsPage() {
                 bgGradient="linear-gradient(180deg, #f5f9fe 47.86%, #d5e9ff 123.81%)"
                 shadow="0px 0px 0px 1px #99c7ff inset, 0px 0px 0px 2px #fff inset"
                 color="#131D53"
+                isDisabled={
+                  !campaign?.creatives || campaign.creatives.length === 0
+                }
                 onClick={() =>
                   router.push(`/affiliate/campaigns/${id}/creatives`)
                 }
@@ -376,8 +348,10 @@ export default function CampaignDetailsPage() {
           </Box>
         </PageHeader>
 
+        {/* Grid de produtos */}
         <PageContent>
-          <Box mb="60px">
+          <Box mb={{ base: '60px', lg: '80px' }}>
+            {/* Empty state para busca sem resultados */}
             {filteredProducts.length === 0 && hasActiveSearch ? (
               <EmptyState
                 icon={Search}
@@ -399,9 +373,7 @@ export default function CampaignDetailsPage() {
               <Grid
                 templateColumns={{
                   base: 'repeat(2, 1fr)',
-                  md: 'repeat(3, 1fr)',
-                  lg: 'repeat(4, 1fr)',
-                  xl: 'repeat(5, 1fr)',
+                  md: 'repeat(auto-fit, minmax(270px, 1fr))',
                 }}
                 gap={{ base: 2, md: 3, lg: 4 }}
               >

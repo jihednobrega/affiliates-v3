@@ -7,9 +7,6 @@ import {
 } from './types/finances.types'
 
 class FinancesService {
-  /**
-   * Busca as finanças do afiliado (comissões, vendas, etc.)
-   */
   public async getAffiliateFinances({
     page,
     perPage,
@@ -31,13 +28,10 @@ class FinancesService {
         },
         signal: controller.signal,
       })
-    
+
     return { response, status: statusResponse, controller }
   }
 
-  /**
-   * Busca o extrato do afiliado (histórico de transações)
-   */
   public async getAffiliateExtract({
     month,
     exportFile,
@@ -72,34 +66,43 @@ class FinancesService {
       signal: controller.signal,
       responseType: exportFile ? 'blob' : 'json',
     })
-    
+
     return { response, status, controller }
   }
 
-  /**
-   * Exporta relatório de finanças do afiliado
-   */
   public static async getAffiliateFinancesExport({
     period,
     fields,
+    product,
+    status,
   }: {
     period?: string
     fields?: string
+    product?: string
+    status?: string
   } = {}) {
     const controller = new AbortController()
     const URL = `/affiliates/finances/export`
 
-    const { data, status } = await api({
-      url: URL,
-      method: 'GET',
-      signal: controller.signal,
-      params: {
-        period: period || undefined,
-        fields: fields || undefined,
-      },
-    })
-    
-    return { response: data, status }
+    try {
+      const { data, status: responseStatus } = await api({
+        url: URL,
+        method: 'GET',
+        signal: controller.signal,
+        responseType: 'blob',
+        params: {
+          period: period || undefined,
+          fields: fields || undefined,
+          product: product || undefined,
+          status: status || undefined,
+        },
+      })
+
+      return { response: data, status: responseStatus }
+    } catch (error) {
+      console.error('Erro na requisição de export:', error)
+      throw error
+    }
   }
 }
 

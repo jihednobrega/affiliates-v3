@@ -7,10 +7,11 @@ import { dateRangeToApiParams } from '@/utils/dashboardUtils'
 import { processMetrics } from '@/utils/metrics'
 import { RankingProduct } from '@/services/types/dashboard.types'
 import { useFinances } from '@/hooks/useFinances'
+import { useLinks } from '@/hooks/useLinks'
 
 const CACHE_CONFIG = {
-  staleTime: 5 * 60 * 1000,
-  gcTime: 10 * 60 * 1000,
+  staleTime: 5 * 60 * 1000, // Se navegar para outra tela e voltar em 4 minutos, não faz nova requisição
+  gcTime: 10 * 60 * 1000, // Cache removido da memória só depois de 10min sem uso
 } as const
 
 export const useDashboard = (dateRange?: DateRange) => {
@@ -28,7 +29,7 @@ export const useDashboard = (dateRange?: DateRange) => {
   } = useQuery({
     queryKey: ['dashboard', 'metrics', apiParams],
     queryFn: () => dashboardService.getMainMetrics(apiParams!),
-    enabled: !!apiParams,
+    enabled: !!apiParams, // Só executa quando tem parâmetros
     ...CACHE_CONFIG,
   })
 
@@ -80,7 +81,12 @@ export const useDashboard = (dateRange?: DateRange) => {
     refetch: refetchProducts,
   } = useFinances({
     page: 1,
-    perPage: 100,
+    perPage: 100, // Pegar mais comissões para análise completa
+  })
+
+  const { data: linksData, isLoading: isLoadingLinks } = useLinks({
+    page: 1,
+    perpage: 100,
   })
 
   const processedMetrics = useMemo(() => {
@@ -94,6 +100,15 @@ export const useDashboard = (dateRange?: DateRange) => {
   const processedProducts = useMemo(() => {
     if (!financesData?.commissions) {
       return []
+    }
+
+    const linksMap = new Map()
+    if (linksData?.links) {
+      linksData.links.forEach((link: any) => {
+        if (link.product_id) {
+          linksMap.set(link.product_id.toString(), link)
+        }
+      })
     }
 
     const productSalesMap = new Map<
@@ -125,7 +140,7 @@ export const useDashboard = (dateRange?: DateRange) => {
           price: parseFloat(commission.product_price) || 0,
           commission_percentage:
             parseFloat(commission.commission_percentage) || 0,
-          commission_value: parseFloat(commission.commission) || 0,
+          commission_value: parseFloat(commission.commission) || 0, // Valor real da comissão
           count: 0,
           totalCommissions: 0,
           totalRevenue: 0,
@@ -151,14 +166,18 @@ export const useDashboard = (dateRange?: DateRange) => {
         image: productData.image,
         price: productData.price,
         commission: productData.commission_percentage,
-        url: undefined,
-        short_url: undefined,
-        clicks: undefined,
+
+        linkData: linksMap.get(productData.id.toString()) || null,
+        url: linksMap.get(productData.id.toString())?.url || undefined,
+        short_url: linksMap.get(productData.id.toString())?.url || undefined,
+        destination_url:
+          linksMap.get(productData.id.toString())?.destination_url || undefined,
+        clicks: linksMap.get(productData.id.toString())?.total_views || 0,
         sales: productData.count,
         revenue: productData.totalRevenue,
         totalCommissions: productData.totalCommissions,
         commissionValue: productData.commission_value,
-      }),
+      })
     )
 
     return productsArray.sort((a, b) => {
@@ -167,7 +186,7 @@ export const useDashboard = (dateRange?: DateRange) => {
       }
       return (b.totalCommissions || 0) - (a.totalCommissions || 0)
     })
-  }, [financesData])
+  }, [financesData, linksData])
 
   const isLoadingAny = useMemo(
     () =>
@@ -175,14 +194,16 @@ export const useDashboard = (dateRange?: DateRange) => {
       isLoadingOrders ||
       isLoadingMonthlyMetrics ||
       isLoadingAllTimeMetrics ||
-      isLoadingProducts,
+      isLoadingProducts ||
+      isLoadingLinks,
     [
       isLoadingMetrics,
       isLoadingOrders,
       isLoadingMonthlyMetrics,
       isLoadingAllTimeMetrics,
       isLoadingProducts,
-    ],
+      isLoadingLinks,
+    ]
   )
 
   const refreshAll = () => {

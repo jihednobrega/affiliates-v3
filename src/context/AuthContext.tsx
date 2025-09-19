@@ -57,7 +57,7 @@ function AuthProvider({ children }: AuthProviderProps) {
 
   const isLoading = useMemo(
     () => signinPending || headerPending,
-    [signinPending, headerPending],
+    [signinPending, headerPending]
   )
 
   function handleSetLoggedIn(value: boolean) {
@@ -101,7 +101,7 @@ function AuthProvider({ children }: AuthProviderProps) {
 
   function handleSignin(
     values: AuthSigninRequest,
-    { onError, onSuccess, redirect = true }: SigninOptions,
+    { onError, onSuccess, redirect = true }: SigninOptions
   ) {
     signin(values, {
       onSuccess(data) {
@@ -209,7 +209,7 @@ function AuthProvider({ children }: AuthProviderProps) {
     const currentPath = router.asPath.split('?')[0]
     const publicPaths = ['/login', '/register']
     const isInPublicPage = publicPaths.some((path) =>
-      currentPath.startsWith(path),
+      currentPath.startsWith(path)
     )
     const isInHomePage = currentPath === '/' || router.asPath === '/'
 
