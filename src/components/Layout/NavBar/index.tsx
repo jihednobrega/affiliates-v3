@@ -1,30 +1,48 @@
 'use client'
 
-import {
-  CreateLinkDrawer,
-  CreateLinkButton,
-} from '@/components/Features/affiliate/links'
+import { CreateLinkDrawer } from '@/components/Features/affiliate/links'
 import { Flex, useDisclosure } from '@chakra-ui/react'
 import { NavItem } from './NavItem'
-import { House } from 'lucide-react'
 import {
-  SettingsCogIcon,
-  LinkEditIcon,
-  CustomBarIcon,
-} from '@/components/Icons'
+  House,
+  User,
+  Megaphone,
+  PackageSearch,
+  Users,
+  BadgeDollarSign,
+  Package,
+  Trophy,
+} from 'lucide-react'
+import { LinkEditIcon } from '@/components/Icons'
 import { usePathname } from 'next/navigation'
 import NextLink from 'next/link'
+import { useAuth } from '@/hooks/useAuth'
 
-const navItems = [
+const affiliateNavItems = [
   { label: 'Início', icon: House, href: '/affiliate/dashboard/' },
   { label: 'Meus Links', icon: LinkEditIcon, href: '/affiliate/hotlinks/' },
-  { label: 'Relatórios', icon: CustomBarIcon, href: '/affiliate/reports/' },
-  { label: 'Ajustes', icon: SettingsCogIcon, href: '/affiliate/settings/' },
+  { label: 'Produtos', icon: PackageSearch, href: '/affiliate/products/' },
+  { label: 'Campanhas', icon: Megaphone, href: '/affiliate/campaigns/' },
+  { label: 'Meu Perfil', icon: User, href: '/affiliate/profile/' },
+]
+
+const brandNavItems = [
+  { label: 'Início', icon: House, href: '/brand/dashboard/' },
+  { label: 'Produtos', icon: Package, href: '/brand/products/' },
+  { label: 'Afiliados', icon: Users, href: '/brand/affiliates/' },
+  { label: 'Ranking', icon: Trophy, href: '/brand/ranking/' },
+  { label: 'Financeiro', icon: BadgeDollarSign, href: '/brand/finances/' },
 ]
 
 export function NavBar() {
   const pathname = usePathname()
-  const { isOpen, onOpen, onClose } = useDisclosure()
+  const { user } = useAuth()
+  const { isOpen, onClose } = useDisclosure()
+
+  const navItems =
+    user?.role === 'brand' || user?.role === 'agent' || user?.role === 'seller'
+      ? brandNavItems
+      : affiliateNavItems
 
   return (
     <>
@@ -59,9 +77,6 @@ export function NavBar() {
             />
           </NextLink>
         ))}
-
-        <CreateLinkButton onClick={onOpen} />
-
         {navItems.slice(2).map((item) => (
           <NextLink href={item.href} key={item.href} passHref>
             <NavItem

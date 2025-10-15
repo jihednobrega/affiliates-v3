@@ -49,7 +49,9 @@ export function PageHeader({ children }: PageHeaderProps) {
       display="flex"
       justifyContent="space-between"
       position="fixed"
-      top="100px"
+      roundedTopEnd={12}
+      roundedTopStart={{ base: 12, lg: 0 }}
+      top={16}
       left={{ base: 0, lg: '240px' }}
       right={0}
       zIndex={10}

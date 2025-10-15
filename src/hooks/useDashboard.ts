@@ -10,7 +10,7 @@ import { useFinances } from '@/hooks/useFinances'
 import { useLinks } from '@/hooks/useLinks'
 
 const CACHE_CONFIG = {
-  staleTime: 5 * 60 * 1000, // Se navegar para outra tela e voltar em 4 minutos, não faz nova requisição
+  staleTime: 5 * 60 * 1000, // Se você navegar para outra tela e voltar em 4 minutos, não faz nova requisição
   gcTime: 10 * 60 * 1000, // Cache removido da memória só depois de 10min sem uso
 } as const
 
@@ -29,7 +29,7 @@ export const useDashboard = (dateRange?: DateRange) => {
   } = useQuery({
     queryKey: ['dashboard', 'metrics', apiParams],
     queryFn: () => dashboardService.getMainMetrics(apiParams!),
-    enabled: !!apiParams, // Só executa quando tem parâmetros
+    enabled: !!apiParams,
     ...CACHE_CONFIG,
   })
 
@@ -81,7 +81,7 @@ export const useDashboard = (dateRange?: DateRange) => {
     refetch: refetchProducts,
   } = useFinances({
     page: 1,
-    perPage: 100, // Pegar mais comissões para análise completa
+    perPage: 100,
   })
 
   const { data: linksData, isLoading: isLoadingLinks } = useLinks({
@@ -140,7 +140,7 @@ export const useDashboard = (dateRange?: DateRange) => {
           price: parseFloat(commission.product_price) || 0,
           commission_percentage:
             parseFloat(commission.commission_percentage) || 0,
-          commission_value: parseFloat(commission.commission) || 0, // Valor real da comissão
+          commission_value: parseFloat(commission.commission) || 0,
           count: 0,
           totalCommissions: 0,
           totalRevenue: 0,

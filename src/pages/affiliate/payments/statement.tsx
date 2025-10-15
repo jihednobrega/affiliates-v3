@@ -78,7 +78,6 @@ export default function StatementPage() {
   const borderColor = useColorModeValue('#DEE6F2', 'gray.600')
   const textColor = useColorModeValue('#131D53', 'white')
   const mutedTextColor = useColorModeValue('#131D5399', 'gray.400')
-  const emptyStateBgColor = useColorModeValue('#F7FAFC', 'gray.600')
 
   const fetchStatementData = useCallback(async () => {
     setIsLoading(true)
@@ -397,6 +396,9 @@ export default function StatementPage() {
                   shadow="0px 0px 0px 1px #99c7ff inset, 0px 0px 0px 2px #fff inset"
                   color="#131D53"
                   onClick={handleExportStatement}
+                  isDisabled={!data?.list?.length}
+                  opacity={!data?.list?.length ? 0.5 : 1}
+                  cursor={!data?.list?.length ? 'not-allowed' : 'pointer'}
                 >
                   Exportar
                 </Button>
@@ -622,7 +624,7 @@ export default function StatementPage() {
                   <Box
                     w="64px"
                     h="64px"
-                    bg={emptyStateBgColor}
+                    bg={useColorModeValue('#F7FAFC', 'gray.600')}
                     borderRadius="50%"
                     display="flex"
                     alignItems="center"

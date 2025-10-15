@@ -12,6 +12,14 @@ import {
  * Calcula a variação percentual entre dois valores
  */
 export const calculateGrowth = (current: number, previous: number): number => {
+  console.log('📊 calculateGrowth:', {
+    current,
+    previous,
+    currentType: typeof current,
+    previousType: typeof previous,
+  })
+
+  // Garantir que os valores são números
   const currentNum = Number(current) || 0
   const previousNum = Number(previous) || 0
 
@@ -35,6 +43,9 @@ export const processMetrics = (
   mainMetrics: MainMetricsData,
   formatCurrency: (value: number) => string
 ): ProcessedMetric[] => {
+  console.log('🔍 processMetrics - Dados recebidos:', mainMetrics)
+
+  // Taxa de conversão calculada
   const conversionRate =
     mainMetrics.clicks.current_period > 0
       ? (mainMetrics.orders.current_period /

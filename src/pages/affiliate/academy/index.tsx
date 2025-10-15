@@ -9,7 +9,7 @@ import {
   HStack,
   VStack,
   Text,
-  Badge,
+  Image,
   Skeleton,
   useDisclosure,
   Modal,
@@ -17,18 +17,35 @@ import {
   ModalContent,
   ModalHeader,
   ModalBody,
-  ModalFooter,
-  ModalCloseButton,
   AspectRatio,
   Progress,
 } from '@chakra-ui/react'
-import { GraduationCap, Play, BookOpen } from 'lucide-react'
+import { GraduationCap, Play, Check } from 'lucide-react'
 import { AppLayout } from '@/components/Layout'
 import { useCategories, useTrainings } from '@/hooks/useAcademy'
+import { AcademyService } from '@/services/academy'
+import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { EmptyState, ErrorState } from '@/components/UI'
-import { BadgeCounter } from '@/components/UI/Badges'
-import { useState } from 'react'
+import { useState, useEffect, useMemo, useRef, useCallback } from 'react'
 import { Training } from '@/services/types/academy.types'
+import dynamic from 'next/dynamic'
+import { getYouTubeThumbnail } from '@/utils/getYouTubeThumbnail'
+import { BadgeCounter } from '@/components/UI/Badges'
+
+const ReactPlayer = dynamic(() => import('react-player'), {
+  ssr: false,
+  loading: () => (
+    <Box
+      w="100%"
+      h="100%"
+      display="flex"
+      alignItems="center"
+      justifyContent="center"
+    >
+      <Text>Carregando player...</Text>
+    </Box>
+  ),
+}) as any
 
 function TrainingsLoadingSkeleton() {
   return (
@@ -144,28 +161,40 @@ function TrainingsLoadingSkeleton() {
   )
 }
 
-function TrainingCard({ training }: { training: Training }) {
-  const { isOpen, onOpen, onClose } = useDisclosure()
-
+function TrainingCard({
+  training,
+  onPlayVideo,
+}: {
+  training: Training
+  onPlayVideo: (training: Training) => void
+}) {
   const progressValue = parseFloat(training.progress)
   const isCompleted = progressValue >= 100
+
+  const getBorderColor = () => {
+    if (isCompleted) return '#10B981'
+    if (progressValue > 0) return '#60A5FA'
+    return '#DEE6F2'
+  }
 
   return (
     <>
       <Box
         bg="white"
         borderRadius="md"
-        borderWidth={1}
-        borderColor="#DEE6F2"
+        borderWidth={2}
+        borderColor={getBorderColor()}
         overflow="hidden"
         cursor="pointer"
         transition="all 0.2s"
         _hover={{
-          borderColor: '#1F70F1',
-          shadow: '0 4px 12px rgba(31, 112, 241, 0.15)',
+          borderColor: isCompleted ? '#059669' : '#3B82F6',
+          shadow: isCompleted
+            ? '0 4px 12px rgba(16, 185, 129, 0.15)'
+            : '0 4px 12px rgba(31, 112, 241, 0.15)',
           transform: 'translateY(-2px)',
         }}
-        onClick={onOpen}
+        onClick={() => onPlayVideo(training)}
         position="relative"
         display="flex"
         flexDirection="column"
@@ -180,39 +209,54 @@ function TrainingCard({ training }: { training: Training }) {
             color="white"
             borderRadius="full"
             p={1}
+            display="flex"
+            alignItems="center"
+            justifyContent="center"
+            shadow="0 2px 4px rgba(0,0,0,0.1)"
           >
-            <BookOpen size={16} />
+            <Check size={16} />
           </Box>
         )}
 
         <AspectRatio ratio={16 / 9}>
-          <Box
-            bgGradient="linear-gradient(135deg, #667eea 0%, #764ba2 100%)"
-            display="flex"
-            alignItems="center"
-            justifyContent="center"
-            position="relative"
-          >
-            <Box
-              position="absolute"
-              inset={0}
-              bg="blackAlpha.300"
-              display="flex"
-              alignItems="center"
-              justifyContent="center"
-            >
+          <Image
+            src={getYouTubeThumbnail(training.content_url) || undefined}
+            fallback={
               <Box
-                bg="whiteAlpha.900"
-                borderRadius="full"
-                p={3}
+                bgGradient="linear-gradient(135deg, #667eea 0%, #764ba2 100%)"
                 display="flex"
                 alignItems="center"
                 justifyContent="center"
+                position="relative"
               >
-                <Play size={24} color="#131D53" />
+                <Box
+                  position="absolute"
+                  inset={0}
+                  bg="blackAlpha.300"
+                  display="flex"
+                  alignItems="center"
+                  justifyContent="center"
+                >
+                  <Box
+                    bg="whiteAlpha.900"
+                    borderRadius="full"
+                    p={3}
+                    display="flex"
+                    alignItems="center"
+                    justifyContent="center"
+                  >
+                    <Play size={24} color="#131D53" />
+                  </Box>
+                </Box>
               </Box>
-            </Box>
-          </Box>
+            }
+            alt={`Thumbnail: ${training.name}`}
+            objectFit="cover"
+            w="full"
+            h="full"
+            loading="lazy"
+            onError={(e) => {}}
+          />
         </AspectRatio>
 
         <Box p={3} flex={1} display="flex" flexDirection="column">
@@ -281,110 +325,395 @@ function TrainingCard({ training }: { training: Training }) {
           </VStack>
         </Box>
       </Box>
+    </>
+  )
+}
 
-      <Modal isOpen={isOpen} onClose={onClose} size="lg">
-        <ModalOverlay />
-        <ModalContent mx={4}>
-          <ModalHeader>
-            <HStack>
-              <Text>{training.name}</Text>
-            </HStack>
-          </ModalHeader>
-          <ModalCloseButton />
-          <ModalBody>
-            <VStack align="start" spacing={4}>
-              {training.description && (
-                <Box>
-                  <Text fontWeight="semibold" mb={2}>
-                    Descrição:
-                  </Text>
-                  <Text fontSize="sm" color="gray.600">
-                    {training.description}
-                  </Text>
-                </Box>
-              )}
+function VideoPlayerModal({
+  isOpen,
+  onClose,
+  training,
+  moduleTrainings,
+  onTrainingChange,
+}: {
+  isOpen: boolean
+  onClose: () => void
+  training: Training | null
+  moduleTrainings: Training[]
+  onTrainingChange: (training: Training) => void
+}) {
+  const [videoPlayerProgress, setVideoPlayerProgress] = useState<
+    Record<number, number>
+  >({})
+  const [isPlaying, setIsPlaying] = useState(false)
+  const [videoDuration, setVideoDuration] = useState<number>(0)
 
-              <Box w="full">
-                <Text fontWeight="semibold" mb={2}>
-                  Progresso:
-                </Text>
-                <HStack justify="space-between" mb={2}>
-                  <Text fontSize="sm" color="gray.600">
-                    {progressValue.toFixed(1)}% concluído
-                  </Text>
-                  {isCompleted && <Badge colorScheme="green">Completo</Badge>}
-                </HStack>
-                <Progress
-                  value={progressValue}
-                  size="md"
-                  borderRadius="full"
-                  colorScheme={isCompleted ? 'green' : 'blue'}
-                />
-              </Box>
+  const currentByIdRef = useRef<Record<number, number>>({})
+  const durationByIdRef = useRef<Record<number, number>>({})
 
-              <HStack spacing={2} flexWrap="wrap">
-                <Box
-                  bg="#DFEFFF"
-                  px={2}
-                  py={1}
-                  borderRadius="4px"
-                  fontSize="xs"
-                  fontWeight="medium"
-                  color="#131D53"
-                >
-                  {training.category}
-                </Box>
-                <Box
-                  bg="#F5F5F5"
-                  px={2}
-                  py={1}
-                  borderRadius="4px"
-                  fontSize="xs"
-                  fontWeight="medium"
-                  color="#666666"
-                >
-                  ID: {training.id}
-                </Box>
-                {training.average_rating && (
-                  <Box
-                    bg="#FFF4E6"
-                    px={2}
-                    py={1}
-                    borderRadius="4px"
-                    fontSize="xs"
-                    fontWeight="medium"
-                    color="#B7791F"
-                  >
-                    ⭐ {training.average_rating}
-                  </Box>
-                )}
-              </HStack>
+  const sentMilestonesRef = useRef<Record<number, Set<number>>>({})
 
-              <Text fontSize="xs" color="gray.500">
-                Criado em:{' '}
-                {new Date(training.created_at).toLocaleString('pt-BR')}
+  const lastSentAtRef = useRef<Record<number, number>>({})
+
+  const queryClient = useQueryClient()
+  const academyService = new AcademyService()
+
+  const convertYouTubeUrl = (url: string) => {
+    if (!url) return url
+    if (url.includes('youtube.com/watch')) return url
+    if (url.includes('youtu.be/')) {
+      const videoId = url.split('youtu.be/')[1]?.split('?')[0]
+      if (videoId) {
+        const fullUrl = `https://www.youtube.com/watch?v=${videoId}`
+        return fullUrl
+      }
+    }
+    return url
+  }
+
+  const { mutate: updateVideoProgress } = useMutation({
+    mutationFn: ({
+      videoId,
+      progress,
+    }: {
+      videoId: number
+      progress: string
+    }) => academyService.updateTrainingProgress(videoId, progress),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['trainings'] })
+    },
+  })
+
+  const handleDurationChange = useCallback(
+    (seconds: number) => {
+      const id = training?.id
+      if (!id || !Number.isFinite(seconds)) return
+      durationByIdRef.current[id] = seconds
+      setVideoDuration(seconds)
+    },
+    [training?.id]
+  )
+
+  const handleTimeUpdate = useCallback(
+    (currentSeconds: number) => {
+      const id = training?.id
+      if (!id || !Number.isFinite(currentSeconds)) return
+
+      currentByIdRef.current[id] = currentSeconds
+      const duration = durationByIdRef.current[id] ?? 0
+      if (!duration || !Number.isFinite(duration) || duration <= 0) return
+
+      const percent = Math.max(
+        0,
+        Math.min(100, (currentSeconds / duration) * 100)
+      )
+
+      setVideoPlayerProgress((prev) => {
+        if (Math.abs((prev[id] ?? 0) - percent) < 0.25) {
+          return prev
+        }
+        return { ...prev, [id]: percent }
+      })
+
+      const serverProgress = Number(training?.progress ?? 0)
+      const milestones = [30, 60, 90]
+      const sent = (sentMilestonesRef.current[id] ??= new Set<number>())
+
+      const now = Date.now()
+      const last = lastSentAtRef.current[id] ?? 0
+      const canSend = now - last > 5000
+
+      for (const m of milestones) {
+        if (percent > m && !sent.has(m) && percent >= serverProgress) {
+          if (canSend) {
+            updateVideoProgress({
+              videoId: id,
+              progress: (Math.round(percent * 100) / 100).toFixed(2),
+            })
+            sent.add(m)
+            lastSentAtRef.current[id] = Date.now()
+          }
+          break
+        }
+      }
+    },
+    [training?.id, training?.progress, updateVideoProgress]
+  )
+
+  const sortedTrainings = useMemo(
+    () => moduleTrainings.sort((a, b) => a.position - b.position),
+    [moduleTrainings]
+  )
+
+  const handleVideoEnd = useCallback(() => {
+    if (!training) return
+
+    updateVideoProgress({
+      videoId: training.id,
+      progress: (100).toFixed(2),
+    })
+
+    setVideoPlayerProgress((prev) => ({
+      ...prev,
+      [training.id]: 100,
+    }))
+  }, [training, updateVideoProgress])
+
+  const handleVideoProgress = useCallback(
+    (trainingId: number) => {
+      const selectedTraining = sortedTrainings?.find(
+        (training) => training.id === trainingId
+      )
+      if (!selectedTraining) return
+
+      const selectedTrainingStoredProgress =
+        videoPlayerProgress[selectedTraining.id]
+
+      if (
+        !selectedTrainingStoredProgress ||
+        Number(selectedTraining.progress) >= selectedTrainingStoredProgress
+      ) {
+        return
+      }
+
+      updateVideoProgress({
+        videoId: trainingId,
+        progress: selectedTrainingStoredProgress.toFixed(2),
+      })
+    },
+    [sortedTrainings, videoPlayerProgress, updateVideoProgress]
+  )
+
+  const handleVideoSelect = useCallback(
+    (selectedTraining: Training) => {
+      if (training) {
+        handleVideoProgress(training.id)
+      }
+      onTrainingChange(selectedTraining)
+
+      sentMilestonesRef.current[selectedTraining.id] = new Set<number>()
+    },
+    [training, handleVideoProgress, onTrainingChange]
+  )
+
+  if (!training) return null
+
+  return (
+    <Modal
+      isOpen={isOpen}
+      onClose={onClose}
+      size={{ base: '6xl', md: '6xl' }}
+      closeOnOverlayClick={true}
+      isCentered
+    >
+      <ModalOverlay bg="blackAlpha.800" />
+      <ModalContent
+        mx={{ base: 4, md: 8 }}
+        my={{ base: 4, md: 8 }}
+        maxH={{ base: '95vh', md: '90vh' }}
+        borderRadius={{ base: 12, md: 12 }}
+        overflow="hidden"
+      >
+        <ModalHeader p={{ base: 2, md: 4 }} pb={2}>
+          <HStack justify="space-between">
+            <VStack align="start" spacing={0} pl={2} flex={1}>
+              <Text
+                fontSize={{ base: 'lg', md: 'xl' }}
+                fontWeight="semibold"
+                color="#131D53"
+                lineHeight="1.3"
+                noOfLines={1}
+              >
+                {training.name}
+              </Text>
+              <Text fontSize="sm" color="#131D5399" noOfLines={1}>
+                {training.category}
               </Text>
             </VStack>
-          </ModalBody>
-          <ModalFooter>
-            <Button
-              as="a"
-              href={training.content_url}
-              target="_blank"
-              rel="noopener noreferrer"
-              colorScheme="blue"
-              leftIcon={<Play size={16} />}
-              mr={3}
+          </HStack>
+        </ModalHeader>
+
+        <ModalBody p={{ base: 2, md: 4 }} pt={0}>
+          <Flex
+            direction={{ base: 'column', md: 'row' }}
+            gap={4}
+            h="full"
+            align="stretch"
+          >
+            <Box
+              w={{ base: 'full', md: '65%' }}
+              aspectRatio={16 / 9}
+              bg="black"
+              borderRadius="lg"
+              overflow="hidden"
+              position="relative"
+              flexShrink={0}
+              shadow="lg"
             >
-              {progressValue > 0 ? 'Continuar Aula' : 'Assistir Aula'}
-            </Button>
-            <Button variant="ghost" onClick={onClose}>
-              Fechar
-            </Button>
-          </ModalFooter>
-        </ModalContent>
-      </Modal>
-    </>
+              {training.content_url ? (
+                <ReactPlayer
+                  width="100%"
+                  height="100%"
+                  controls
+                  playing={isPlaying}
+                  src={convertYouTubeUrl(training.content_url)}
+                  progressInterval={1000}
+                  key={training.id}
+                  onReady={() => {}}
+                  onStart={() => {}}
+                  onPlay={() => {
+                    setIsPlaying(true)
+                  }}
+                  onPause={() => {
+                    setIsPlaying(false)
+                    if (training) {
+                      handleVideoProgress(training.id)
+                    }
+                  }}
+                  onDurationChange={(event: any) => {
+                    const duration = event?.target?.duration || 0
+
+                    if (Number.isFinite(duration) && duration > 0) {
+                      handleDurationChange(duration)
+                    }
+                  }}
+                  onTimeUpdate={(event: any) => {
+                    const currentTime = event?.target?.currentTime || 0
+                    const id = training?.id
+
+                    if (
+                      !id ||
+                      !Number.isFinite(currentTime) ||
+                      !Number.isFinite(videoDuration) ||
+                      videoDuration === 0 ||
+                      currentTime < 0
+                    ) {
+                      return
+                    }
+
+                    handleTimeUpdate(currentTime)
+                  }}
+                  onEnded={handleVideoEnd}
+                  onError={(error: any) => {}}
+                />
+              ) : (
+                <Box
+                  w="full"
+                  h="full"
+                  bg="gray.100"
+                  display="flex"
+                  alignItems="center"
+                  justifyContent="center"
+                >
+                  <Text>URL do vídeo não disponível</Text>
+                </Box>
+              )}
+            </Box>
+
+            <Box
+              w={{ base: 'full', md: '35%' }}
+              bg="white"
+              borderWidth={1}
+              borderColor="#DEE6F2"
+              borderRadius="lg"
+              maxH={{ base: '300px', md: 'full' }}
+              overflow="hidden"
+              shadow="sm"
+            >
+              <Box
+                p={{ base: 2, md: 3 }}
+                bg="#F8FAFC"
+                borderBottom="1px solid"
+                borderColor="#DEE6F2"
+              >
+                <Text fontSize="sm" fontWeight="medium" color="#131D53">
+                  Vídeos do Módulo ({sortedTrainings.length})
+                </Text>
+              </Box>
+              <Box
+                p={{ base: 2, md: 3 }}
+                maxH={{ base: '250px', md: '400px' }}
+                overflowY="auto"
+              >
+                <VStack spacing={1} align="stretch">
+                  {sortedTrainings.map((t) => {
+                    const isCurrentVideo = t.id === training.id
+                    const videoProgress = Math.round(
+                      Math.max(
+                        parseFloat(t.progress),
+                        videoPlayerProgress[Number(t.id)] || 0
+                      )
+                    )
+                    const isCompleted = videoProgress >= 100
+
+                    return (
+                      <HStack
+                        key={t.id}
+                        p={2}
+                        borderRadius="md"
+                        bg={isCurrentVideo ? 'blue.50' : 'white'}
+                        borderWidth={1}
+                        borderColor={
+                          isCurrentVideo
+                            ? '#60A5FA'
+                            : isCompleted
+                            ? '#10B981'
+                            : 'gray.200'
+                        }
+                        cursor="pointer"
+                        transition="all 0.2s"
+                        _hover={{
+                          borderColor: isCompleted ? '#059669' : '#3B82F6',
+                          bg: isCompleted ? 'green.50' : 'blue.50',
+                        }}
+                        onClick={() => handleVideoSelect(t)}
+                      >
+                        <Box flexShrink={0}>
+                          {isCurrentVideo ? (
+                            <Play size={16} color="#3182CE" fill="#3182CE" />
+                          ) : isCompleted ? (
+                            <Check size={16} color="#38A169" />
+                          ) : (
+                            <Play size={16} color="#718096" />
+                          )}
+                        </Box>
+                        <VStack align="start" spacing={1} flex={1}>
+                          <Text
+                            fontSize="sm"
+                            fontWeight="medium"
+                            color="#131D53"
+                            lineHeight="1.3"
+                            noOfLines={1}
+                          >
+                            {t.name}
+                          </Text>
+                          <Box w="full">
+                            <Progress
+                              value={videoProgress}
+                              size="sm"
+                              h="6px"
+                              borderRadius="full"
+                              bg="gray.200"
+                              sx={{
+                                '& > div': {
+                                  background: isCompleted
+                                    ? 'linear-gradient(90deg, #10B981 0%, #059669 100%)'
+                                    : 'linear-gradient(90deg, #60A5FA 0%, #3B82F6 100%)',
+                                },
+                              }}
+                            />
+                          </Box>
+                        </VStack>
+                      </HStack>
+                    )
+                  })}
+                </VStack>
+              </Box>
+            </Box>
+          </Flex>
+        </ModalBody>
+      </ModalContent>
+    </Modal>
   )
 }
 
@@ -392,11 +721,27 @@ function ModuleSelector({
   categories,
   selectedModule,
   onSelectModule,
+  trainingsData,
 }: {
   categories: string[]
   selectedModule: string
   onSelectModule: (module: string) => void
+  trainingsData?: any
 }) {
+  const getModuleProgress = (category: string) => {
+    if (!trainingsData) return 0
+
+    const moduleTrainings =
+      trainingsData.list?.filter((t: any) => t.category === category) || []
+    if (moduleTrainings.length === 0) return 0
+
+    const totalProgress = moduleTrainings.reduce(
+      (acc: number, t: any) => acc + parseFloat(t.progress),
+      0
+    )
+    return Math.round(totalProgress / moduleTrainings.length)
+  }
+
   return (
     <Box>
       <HStack
@@ -410,33 +755,45 @@ function ModuleSelector({
           scrollbarWidth: 'none',
         }}
       >
-        {categories.map((category) => (
-          <Button
-            key={category}
-            size="sm"
-            variant={selectedModule === category ? 'solid' : 'outline'}
-            colorScheme="blue"
-            onClick={() => onSelectModule(category)}
-            flexShrink={0}
-          >
-            {category}
-          </Button>
-        ))}
+        {categories.map((category) => {
+          const moduleProgress = getModuleProgress(category)
+          const isCompleted = moduleProgress >= 100
+          const isSelected = selectedModule === category
+
+          return (
+            <Button
+              key={category}
+              size="sm"
+              variant={isSelected ? 'solid' : 'outline'}
+              colorScheme={isCompleted ? 'green' : 'blue'}
+              onClick={() => onSelectModule(category)}
+              flexShrink={0}
+            >
+              {category}
+            </Button>
+          )
+        })}
       </HStack>
 
       <Box display={{ base: 'none', md: 'block' }}>
         <HStack spacing={2} flexWrap="wrap">
-          {categories.map((category) => (
-            <Button
-              key={category}
-              size="md"
-              variant={selectedModule === category ? 'solid' : 'outline'}
-              colorScheme="blue"
-              onClick={() => onSelectModule(category)}
-            >
-              {category}
-            </Button>
-          ))}
+          {categories.map((category) => {
+            const moduleProgress = getModuleProgress(category)
+            const isCompleted = moduleProgress >= 100
+            const isSelected = selectedModule === category
+
+            return (
+              <Button
+                key={category}
+                size="md"
+                variant={isSelected ? 'solid' : 'outline'}
+                colorScheme={isCompleted ? 'green' : 'blue'}
+                onClick={() => onSelectModule(category)}
+              >
+                {category}
+              </Button>
+            )
+          })}
         </HStack>
       </Box>
     </Box>
@@ -445,6 +802,15 @@ function ModuleSelector({
 
 export default function Academy() {
   const [selectedModule, setSelectedModule] = useState('Módulo 0')
+  const [selectedTraining, setSelectedTraining] = useState<Training | null>(
+    null
+  )
+  const [hasInitializedModule, setHasInitializedModule] = useState(false)
+  const {
+    isOpen: isVideoModalOpen,
+    onOpen: onVideoModalOpen,
+    onClose: onVideoModalClose,
+  } = useDisclosure()
 
   const {
     data: categories,
@@ -462,6 +828,57 @@ export default function Academy() {
     useTrainings()
 
   const trainings = trainingsData?.list || []
+
+  const getFirstIncompleteModule = (
+    allTrainings: Training[],
+    categories: string[]
+  ) => {
+    for (const category of categories.sort()) {
+      const moduleTrainings = allTrainings.filter(
+        (t) => t.category === category
+      )
+      if (moduleTrainings.length === 0) continue
+
+      const totalProgress = moduleTrainings.reduce(
+        (acc, t) => acc + parseFloat(t.progress),
+        0
+      )
+      const moduleProgress = Math.round(totalProgress / moduleTrainings.length)
+
+      if (moduleProgress < 100) {
+        return category
+      }
+    }
+
+    return null
+  }
+
+  useEffect(() => {
+    if (allTrainingsData?.list && categories && !hasInitializedModule) {
+      const firstIncompleteModule = getFirstIncompleteModule(
+        allTrainingsData.list,
+        categories
+      )
+      if (firstIncompleteModule) {
+        setSelectedModule(firstIncompleteModule)
+      }
+      setHasInitializedModule(true)
+    }
+  }, [allTrainingsData, categories, hasInitializedModule])
+
+  const handlePlayVideo = (training: Training) => {
+    setSelectedTraining(training)
+    onVideoModalOpen()
+  }
+
+  const handleTrainingChange = (training: Training) => {
+    setSelectedTraining(training)
+  }
+
+  const handleCloseVideoModal = () => {
+    setSelectedTraining(null)
+    onVideoModalClose()
+  }
 
   const isInitialLoading = categoriesLoading && !categories
   const isTrainingsLoading = trainingsLoading
@@ -641,6 +1058,7 @@ export default function Academy() {
                 categories={categories}
                 selectedModule={selectedModule}
                 onSelectModule={setSelectedModule}
+                trainingsData={allTrainingsData}
               />
             )}
 
@@ -744,7 +1162,11 @@ export default function Academy() {
                     gap={2}
                   >
                     {trainings.map((training) => (
-                      <TrainingCard key={training.id} training={training} />
+                      <TrainingCard
+                        key={training.id}
+                        training={training}
+                        onPlayVideo={handlePlayVideo}
+                      />
                     ))}
                   </Box>
 
@@ -757,7 +1179,11 @@ export default function Academy() {
                     gap={2}
                   >
                     {trainings.map((training) => (
-                      <TrainingCard key={training.id} training={training} />
+                      <TrainingCard
+                        key={training.id}
+                        training={training}
+                        onPlayVideo={handlePlayVideo}
+                      />
                     ))}
                   </Box>
                 </Box>
@@ -765,6 +1191,14 @@ export default function Academy() {
             )}
           </VStack>
         </PageContent>
+
+        <VideoPlayerModal
+          isOpen={isVideoModalOpen}
+          onClose={handleCloseVideoModal}
+          training={selectedTraining}
+          moduleTrainings={trainings}
+          onTrainingChange={handleTrainingChange}
+        />
       </AppLayout>
     </>
   )

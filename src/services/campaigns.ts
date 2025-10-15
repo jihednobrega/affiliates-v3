@@ -16,7 +16,12 @@ class CampaignsService {
     this.productsService = new ProductsService()
   }
 
-  public async getCampaigns({ page, perpage, status }: GetCampaignsRequest) {
+  public async getCampaigns({
+    page,
+    perpage,
+    status,
+    name,
+  }: GetCampaignsRequest) {
     const controller = new AbortController()
     const URL = `/campaigns`
     const params: Record<string, any> = {}
@@ -24,6 +29,7 @@ class CampaignsService {
     if (page) params.page = page
     if (perpage) params.perpage = perpage
     if (status) params.status = status
+    if (name) params.name = name
 
     const { data: response, status: statusResponse } =
       await api<GetCampaignsResponse>({
@@ -75,15 +81,6 @@ class CampaignsService {
     return results.filter((result) => result.response?.success)
   }
 
-  // ===================================================================
-  // CÓDIGO TEMPORÁRIO - REMOVER QUANDO API /campaigns INCLUIR:
-  // - price e commission nos items[]
-  // - Dados completos dos produtos diretamente na resposta
-  // ===================================================================
-
-  /**
-   * Enriquece uma campanha com dados dos produtos
-   */
   public async enrichCampaign(campaign: CampaignItem): Promise<CampaignForUI> {
     try {
       const productIds = campaign.items.map((item) => item.id)
@@ -155,10 +152,6 @@ class CampaignsService {
     }
   }
 
-  // ===================================================================
-  // FIM DO CÓDIGO TEMPORÁRIO
-  // ===================================================================
-
   private formatCampaign(
     campaign: CampaignItem,
     productsMap: Map<number, ProductItem>
@@ -169,6 +162,22 @@ class CampaignsService {
         return `${day}/${month}/${year}`
       } catch {
         return dateStr
+      }
+    }
+
+    let campaignCommission = 0
+    if (campaign.commission !== undefined && campaign.commission !== null) {
+      const parsedCampaignCommission =
+        typeof campaign.commission === 'string'
+          ? parseFloat(campaign.commission)
+          : campaign.commission
+
+      if (
+        !isNaN(parsedCampaignCommission) &&
+        isFinite(parsedCampaignCommission) &&
+        parsedCampaignCommission >= 0
+      ) {
+        campaignCommission = parsedCampaignCommission
       }
     }
 
@@ -187,8 +196,10 @@ class CampaignsService {
             : 0
       }
 
-      let validCommission = 0
+      let validCommission = campaignCommission
+
       if (
+        validCommission === 0 &&
         productDetail?.commission !== undefined &&
         productDetail?.commission !== null
       ) {
@@ -230,6 +241,7 @@ class CampaignsService {
       imageUrl: campaign.banner,
       status: 'active',
       maxCommission: maxCommissionFromProducts,
+      commission: campaign.commission,
       products: enrichedProducts,
       creatives: [],
     }

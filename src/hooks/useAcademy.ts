@@ -14,11 +14,11 @@ export function useCategories() {
       }
       return response.data
     },
-    staleTime: 15 * 60 * 1000, // 15 minutos - categories mudam raramente
-    gcTime: 30 * 60 * 1000, // 30 minutos na memória
+    staleTime: 15 * 60 * 1000,
+    gcTime: 30 * 60 * 1000,
     retry: 3,
-    refetchOnWindowFocus: false, // Evita refetch desnecessário
-    refetchOnMount: false, // Usa cache se disponível
+    refetchOnWindowFocus: false,
+    refetchOnMount: false,
   })
 }
 
@@ -33,7 +33,7 @@ export function useTrainings(category?: string) {
       return response.data
     },
     enabled: true,
-    staleTime: 5 * 60 * 1000, // 5 minutos
+    staleTime: 5 * 60 * 1000,
     retry: 3,
   })
 }
@@ -68,8 +68,8 @@ export function useUpdateTrainingProgress() {
       trainingId,
       progress,
     }: {
-      trainingId: string
-      progress: number
+      trainingId: number
+      progress: string
     }) => {
       const { response, status } = await academyService.updateTrainingProgress(
         trainingId,

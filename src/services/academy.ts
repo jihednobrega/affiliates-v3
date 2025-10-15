@@ -24,6 +24,9 @@ export class AcademyService {
 
     if (category) {
       const apiFormatEncoded = encodeURIComponent(category).replace(/%20/g, '+')
+      console.log('🎯 AcademyService.getTrainings - Categoria:', category)
+      console.log('🔗 Standard encoding:', encodeURIComponent(category))
+      console.log('🔗 API format encoding:', apiFormatEncoded)
     }
 
     const { data: response, status } = await api<GetTrainingsResponse>({
@@ -49,13 +52,14 @@ export class AcademyService {
     return { response, status, controller }
   }
 
-  public async updateTrainingProgress(trainingId: string, progress: number) {
+  public async updateTrainingProgress(trainingId: number, progress: string) {
     const controller = new AbortController()
-    const URL = `/affiliates/trainings/${trainingId}/progress`
+
+    const URL = `/affiliates/trainings/${trainingId}`
 
     const { data: response, status } = await api({
       url: URL,
-      method: 'PUT',
+      method: 'POST',
       signal: controller.signal,
       data: { progress },
     })

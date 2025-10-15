@@ -6,16 +6,19 @@ import {
   Megaphone,
   Info,
   BadgeDollarSign,
-  Star,
-  Medal,
   GraduationCap,
   Network,
+  PackageSearch,
+  Users,
+  Package,
+  Ticket,
+  Trophy,
 } from 'lucide-react'
 import { usePathname } from 'next/navigation'
-import { Box, VStack } from '@chakra-ui/react'
+import { Box, VStack, Skeleton, Stack } from '@chakra-ui/react'
 import { NavigationSection } from './NavigationSection'
 import { NavigationSection as NavigationSectionType } from './types'
-import { CustomBarIcon, SettingsCogIcon } from '@/components/Icons'
+import { useAuth } from '@/hooks/useAuth'
 
 interface NavigationContentProps {
   onClose?: () => void
@@ -23,8 +26,9 @@ interface NavigationContentProps {
 
 export function NavigationContent({ onClose }: NavigationContentProps) {
   const pathname = usePathname()
+  const { user, isLoading } = useAuth()
 
-  const sections: NavigationSectionType[] = [
+  const affiliateSections: NavigationSectionType[] = [
     {
       label: 'Gestão',
       items: [
@@ -34,9 +38,14 @@ export function NavigationContent({ onClose }: NavigationContentProps) {
           icon: LayoutDashboard,
         },
         {
-          label: 'Meus Hot Links',
+          label: 'Meus Links',
           href: '/affiliate/hotlinks/',
           icon: LinkIcon,
+        },
+        {
+          label: 'Produtos',
+          href: '/affiliate/products/',
+          icon: PackageSearch,
         },
         {
           label: 'Campanhas',
@@ -48,18 +57,21 @@ export function NavigationContent({ onClose }: NavigationContentProps) {
           href: '/affiliate/network/',
           icon: Network,
         },
-      ],
+      ].filter((item) => {
+        if (item.href === '/affiliate/network/' && !user?.canHaveReferrals) {
+          return false
+        }
+        return true
+      }),
     },
     {
       label: 'Central do Afiliado',
       items: [
-        { label: 'Missões', href: '/affiliate/missions/', icon: Medal },
         {
           label: 'Affiliates Academy',
           href: '/affiliate/academy/',
           icon: GraduationCap,
         },
-        { label: 'Criativos', href: '/affiliate/creatives/', icon: Star },
       ],
     },
     {
@@ -70,25 +82,93 @@ export function NavigationContent({ onClose }: NavigationContentProps) {
           href: '/affiliate/payments/',
           icon: BadgeDollarSign,
         },
+      ],
+    },
+    {
+      label: 'Ajuda',
+      items: [{ label: 'Suporte', href: '/affiliate/support/', icon: Info }],
+    },
+  ]
+
+  const brandSections: NavigationSectionType[] = [
+    {
+      label: 'Gestão',
+      items: [
         {
-          label: 'Relatórios',
-          href: '/affiliate/reports/',
-          icon: CustomBarIcon,
+          label: 'Meu Painel',
+          href: '/brand/dashboard/',
+          icon: LayoutDashboard,
+        },
+        {
+          label: 'Meus Produtos',
+          href: '/brand/products/',
+          icon: Package,
+        },
+        {
+          label: 'Minhas Campanhas',
+          href: '/brand/campaigns/',
+          icon: Megaphone,
+        },
+        {
+          label: 'Meus Afiliados',
+          href: '/brand/affiliates/',
+          icon: Users,
+        },
+        {
+          label: 'Ranking de Afiliados',
+          href: '/brand/ranking/',
+          icon: Trophy,
+        },
+        {
+          label: 'Cupons',
+          href: '/brand/coupons/',
+          icon: Ticket,
+        },
+      ],
+    },
+    {
+      label: 'Finanças',
+      items: [
+        {
+          label: 'Financeiro',
+          href: '/brand/finances/',
+          icon: BadgeDollarSign,
         },
       ],
     },
     {
       label: 'Ajuda',
       items: [
-        { label: 'Suporte', href: '/affiliate/support/', icon: Info },
         {
-          label: 'Ajustes',
-          icon: SettingsCogIcon,
-          href: '/affiliate/settings/',
+          label: 'Suporte',
+          href: '/brand/support/',
+          icon: Info,
         },
       ],
     },
   ]
+
+  const sections =
+    user?.role === 'brand' || user?.role === 'agent' || user?.role === 'seller'
+      ? brandSections
+      : affiliateSections
+
+  if (isLoading) {
+    return (
+      <Box bg="white" w="full" h="full" maxW="286px">
+        <VStack spacing={8} p={4} pb={10} align="stretch">
+          {[1, 2, 3, 4].map((i) => (
+            <Stack key={i} spacing={2}>
+              <Skeleton height="16px" width="80px" mb={2} />
+              <Skeleton height="40px" width="full" />
+              <Skeleton height="40px" width="full" />
+              <Skeleton height="40px" width="full" />
+            </Stack>
+          ))}
+        </VStack>
+      </Box>
+    )
+  }
 
   return (
     <Box bg="white" w="full" h="full" maxW="286px">

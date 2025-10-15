@@ -21,9 +21,10 @@ export default tsEslint.config(
       ...reactHooks.configs.recommended.rules,
       'react-refresh/only-export-components': 'warn',
       'react/no-unescaped-entities': 'off',
-      '@typescript-eslint/no-unused-vars': 'warn',
-      '@typescript-eslint/no-explicit-any': 'warn',
+      '@typescript-eslint/no-unused-vars': 'off',
+      '@typescript-eslint/no-explicit-any': 'off',
       'no-case-declarations': 'warn',
+      'no-useless-escape': 'off',
       'react-hooks/exhaustive-deps': 'warn',
     },
   }

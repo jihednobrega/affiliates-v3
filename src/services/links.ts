@@ -9,6 +9,7 @@ class LinksService {
     page,
     perpage,
     product,
+    view,
   }: GetAffiliateLinksRequest) {
     const controller = new AbortController()
 
@@ -21,7 +22,13 @@ class LinksService {
       params.append('product', product)
     }
 
+    if (view) {
+      params.append('view', view)
+    }
+
     const URL = `/affiliates/links?${params.toString()}`
+
+    console.log('🔍 DEBUG LinksService:', { page, perpage, product, view, URL })
 
     const { data: response, status: statusResponse } =
       await api<GetAffiliateLinksResponse>({
@@ -33,9 +40,6 @@ class LinksService {
     return { response, status: statusResponse, controller }
   }
 
-  /**
-   * Busca estatísticas resumidas dos links do afiliado
-   */
   public async getAffiliateLinksStats() {
     const controller = new AbortController()
     const URL = `/affiliates/links`
@@ -60,9 +64,6 @@ class LinksService {
     return { response, status: statusResponse, controller }
   }
 
-  /**
-   * Busca um link específico do afiliado por ID
-   */
   public async getAffiliateLinkById(linkId: number) {
     const controller = new AbortController()
     const URL = `/affiliates/links/${linkId}`
@@ -80,9 +81,6 @@ class LinksService {
     return { response, status: statusResponse, controller }
   }
 
-  /**
-   * Verifica se já existe um link para um produto específico
-   */
   public async checkExistingLinkByProductId(productId: number) {
     const controller = new AbortController()
 
@@ -106,9 +104,6 @@ class LinksService {
     }
   }
 
-  /**
-   * Cria um novo link de afiliado para um produto
-   */
   public async createAffiliateLink(productId: number) {
     const controller = new AbortController()
     const URL = `/affiliates/links`
@@ -129,9 +124,23 @@ class LinksService {
     return { response, status: statusResponse, controller }
   }
 
-  /**
-   * Exporta relatório de links do afiliado
-   */
+  public async deleteAffiliateLink(linkId: number) {
+    const controller = new AbortController()
+    const URL = `/affiliates/links/${linkId}`
+
+    const { data: response, status: statusResponse } = await api<{
+      success: boolean
+      message: string
+      data?: any
+    }>({
+      url: URL,
+      method: 'DELETE',
+      signal: controller.signal,
+    })
+
+    return { response, status: statusResponse, controller }
+  }
+
   public static async getAffiliateLinksExport({
     status,
     dateRange,

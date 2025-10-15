@@ -4,12 +4,9 @@ import { FinancesService } from '@/services/finances'
 import {
   FinancesFilters,
   AffiliateFinancesData,
-  ExtractItem,
-  CommissionAffiliateList,
 } from '@/services/types/finances.types'
 import { formatCurrency } from '@/utils/currency'
 
-// Cache e configurações otimizadas
 const CACHE_CONFIG = {
   staleTime: 3 * 60 * 1000, // 3 minutos - dados financeiros mudam com menos frequência
   gcTime: 10 * 60 * 1000, // 10 minutos na memória

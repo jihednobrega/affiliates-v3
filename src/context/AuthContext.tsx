@@ -158,6 +158,7 @@ function AuthProvider({ children }: AuthProviderProps) {
           balance,
           code,
           app_version,
+          can_have_referrals,
         } = data.response.data
 
         setBrandVendor(brand.vendor)
@@ -181,6 +182,7 @@ function AuthProvider({ children }: AuthProviderProps) {
           role,
           currentBrandId: brand.id,
           app_version,
+          canHaveReferrals: can_have_referrals || false,
         })
 
         if (available_brands) {

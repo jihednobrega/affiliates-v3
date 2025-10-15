@@ -99,3 +99,30 @@ export interface FinancesFilters {
   page: number
   perPage: number
 }
+
+export interface GetWithdrawalInfoResponse
+  extends DefaultResponse,
+    ErrorResponse {
+  data: {
+    reason: string
+    user_type: string
+    extra?: string
+  }
+}
+
+export interface GetSimplifiedWithdrawalInfoResponse
+  extends DefaultResponse,
+    ErrorResponse {
+  data: {
+    taxes: string
+    balance: string
+  }
+}
+
+export interface PostWithdrawalRequest {
+  amount: string | number
+}
+
+export interface PostWithdrawalResponse extends DefaultResponse, ErrorResponse {
+  data: any
+}

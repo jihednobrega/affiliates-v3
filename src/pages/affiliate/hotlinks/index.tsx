@@ -14,7 +14,7 @@ import {
 } from '@chakra-ui/react'
 import { LinkEditIcon } from '@/components/Icons'
 import { CreateLinkDrawer } from '@/components/Features/affiliate/links'
-import { Calendar, Search, SlidersHorizontal, Link } from 'lucide-react'
+import { Search, Link } from 'lucide-react'
 import { HotlinkCard } from '@/components/Features/affiliate/links'
 import { useLinks } from '@/hooks/useLinks'
 import { useFinances } from '@/hooks/useFinances'
@@ -49,12 +49,18 @@ function HotlinkCardSkeleton() {
       height="fit-content"
       display="flex"
       flexDirection="column"
-      minWidth={{ base: 'auto', md: '530px' }}
+      minW={{ base: '220px', md: '320px' }}
+      maxW="500px"
+      mx={{ base: 'auto', md: 'unset' }}
     >
       <Box p={3} borderBottomWidth={1} borderBottomColor="#E6E6E6">
         <Flex justify="space-between" mb={2} gap={2}>
           <Flex align="center" gap={2}>
-            <Skeleton w="32px" h="32px" borderRadius="4px" />
+            <Skeleton
+              w={{ base: '32px', md: '40px' }}
+              h={{ base: '32px', md: '40px' }}
+              borderRadius="4px"
+            />
             <Skeleton height="16px" width="120px" />
           </Flex>
         </Flex>
@@ -79,7 +85,7 @@ function HotlinkCardSkeleton() {
         >
           {[1, 2, 3, 4].map((i) => (
             <HStack key={i} gap={2}>
-              <Skeleton w="20px" h="20px" borderRadius="sm" />
+              <Skeleton w="28px" h="28px" borderRadius="sm" />
               <Box flex={1}>
                 <Skeleton height="10px" width="40px" mb={1} />
                 <Skeleton height="12px" width="60px" />
@@ -104,17 +110,24 @@ function HotlinkCardSkeleton() {
       </Box>
 
       <Box borderTopWidth={1} borderTopColor="#E6E6E6" p={3} mt="auto">
-        <HStack display={{ base: 'none', md: 'flex' }} gap={2}>
+        <HStack
+          display={{ base: 'none', md: 'flex' }}
+          justify="flex-end"
+          gap={2}
+        >
           <Skeleton height="32px" width="100px" borderRadius="md" />
           <Skeleton height="32px" width="130px" borderRadius="md" />
-          <Skeleton height="32px" width="100px" borderRadius="md" />
-          <Skeleton height="32px" width="80px" borderRadius="md" />
+          <Skeleton height="32px" width="40px" borderRadius="md" />
         </HStack>
 
-        <HStack justify="space-between" display={{ base: 'flex', md: 'none' }}>
+        <HStack
+          justify="flex-end"
+          display={{ base: 'flex', md: 'none' }}
+          gap={2}
+        >
           <Skeleton height="32px" width="100px" borderRadius="md" />
           <Skeleton height="32px" width="130px" borderRadius="md" />
-          <Skeleton height="32px" width="60px" borderRadius="md" />
+          <Skeleton height="32px" width="40px" borderRadius="md" />
         </HStack>
       </Box>
     </Box>
@@ -122,10 +135,11 @@ function HotlinkCardSkeleton() {
 }
 
 export default function HotLinks() {
-  const { isOpen, onOpen, onClose } = useDisclosure()
+  const { isOpen, onClose } = useDisclosure()
   const [currentPage, setCurrentPage] = useState(1)
   const [searchTerm, setSearchTerm] = useState('')
   const [debouncedSearchTerm, setDebouncedSearchTerm] = useState('')
+  const [activeTab, setActiveTab] = useState<'active' | 'expired'>('active')
   const itemsPerPage = 12
 
   useEffect(() => {
@@ -144,6 +158,21 @@ export default function HotLinks() {
   } = useLinks({
     page: currentPage,
     perpage: itemsPerPage,
+    product: debouncedSearchTerm || undefined,
+    view: activeTab === 'expired' ? 'bin' : undefined,
+  })
+
+  const { data: expiredLinksData, isLoading: isLoadingExpired } = useLinks({
+    page: 1,
+    perpage: 1,
+    view: 'bin',
+    product: debouncedSearchTerm || undefined,
+  })
+
+  const { data: activeLinksData, isLoading: isLoadingActive } = useLinks({
+    page: 1,
+    perpage: 1,
+
     product: debouncedSearchTerm || undefined,
   })
 
@@ -171,12 +200,26 @@ export default function HotLinks() {
     return map
   }, [productsData])
 
-  const hotlinks = useMemo(() => {
+  const allHotlinks = useMemo(() => {
     if (!linksData?.links || isLoadingProducts || isLoadingFinances) {
       return []
     }
 
+    console.log('🔍 DEBUG Links:', {
+      totalLinks: linksData.links.length,
+      meta: linksData.meta,
+      productsCount: productsData?.products?.length || 0,
+      financesCount: financesData?.commissions?.length || 0,
+    })
+
+    const deletedCount = linksData.links.filter(
+      (link) => link.deleted_at !== null
+    ).length
+    console.log('🔍 DEBUG Deleted links:', deletedCount)
+
     const allLinks = linksData.links
+
+    console.log('🔍 DEBUG All links:', allLinks.length)
 
     const financesMap = new Map()
     const productStatsMap = new Map()
@@ -251,6 +294,7 @@ export default function HotLinks() {
       })
       .filter((item): item is Hotlink => item !== null)
 
+    console.log('🔍 DEBUG Final hotlinks:', processedLinks.length)
     return processedLinks
   }, [
     linksData,
@@ -259,6 +303,12 @@ export default function HotLinks() {
     isLoadingProducts,
     isLoadingFinances,
   ])
+
+  const hotlinks = allHotlinks
+
+  const totalActiveLinks = activeLinksData?.meta?.total_items || 0
+  const totalExpiredLinks = expiredLinksData?.meta?.total_items || 0
+  const totalLinks = totalActiveLinks + totalExpiredLinks
 
   const hasActiveSearch = debouncedSearchTerm.trim().length > 0
   const clearSearch = () => {
@@ -271,6 +321,10 @@ export default function HotLinks() {
     setCurrentPage(1)
   }, [debouncedSearchTerm])
 
+  useEffect(() => {
+    setCurrentPage(1)
+  }, [activeTab])
+
   const handleSearchChange = (value: string) => {
     setSearchTerm(value)
   }
@@ -278,7 +332,10 @@ export default function HotLinks() {
   const loading = isLoadingLinks
   const isProcessingData = isLoadingFinances || isLoadingProducts
   const isInitialLoading = loading && !linksData
-  const error = linksError || ((productsError as any)?.response?.status !== 500 ? productsError : null)
+
+  const error =
+    linksError ||
+    (productsError?.response?.status !== 500 ? productsError : null)
   const retry = retryLinks
 
   if (isInitialLoading) {
@@ -298,26 +355,6 @@ export default function HotLinks() {
                     <Skeleton height="24px" width="40px" borderRadius="4px" />
                   </HStack>
                 </Flex>
-                <Button
-                  rounded={4}
-                  h={8}
-                  fontSize="xs"
-                  fontWeight={600}
-                  px={3}
-                  onClick={onOpen}
-                  color="#fff"
-                  bgGradient="linear-gradient(180deg, #559DFF -27.08%, #1854DD 123.81%);"
-                  shadow="0px 0px 0px 1px #0055F4, 0px -1px 0px 0px rgba(0, 56, 169, 0.30) inset, 0px 1px 1px 0px rgba(255, 255, 255, 0.60) inset"
-                  _hover={{
-                    bgGradient:
-                      'linear-gradient(180deg, #6BA6FF -27.08%, #2A65E8 123.81%)',
-                    shadow:
-                      '0px 0px 0px 1px #1F70F1, 0px -1px 0px 0px rgba(0, 56, 169, 0.40) inset, 0px 1px 1px 0px rgba(255, 255, 255, 0.70) inset',
-                  }}
-                  transition="all 0.2s ease"
-                >
-                  Criar Link
-                </Button>
               </Flex>
 
               <Box display={{ base: 'block', md: 'none' }}>
@@ -357,40 +394,6 @@ export default function HotLinks() {
                     value={searchTerm}
                     onChange={(e) => handleSearchChange(e.target.value)}
                   />
-                </HStack>
-                <HStack gap={2} justify="space-between">
-                  <Button
-                    rounded={4}
-                    size="sm"
-                    fontSize="xs"
-                    fontWeight={500}
-                    px={3}
-                    py={1.5}
-                    w="full"
-                    gap={1.5}
-                    bgGradient="linear-gradient(180deg, #f5f9fe 47.86%, #d5e9ff 123.81%)"
-                    shadow="0px 0px 0px 1px #99c7ff inset, 0px 0px 0px 2px #fff inset"
-                    color="#131D53"
-                  >
-                    <Calendar size={16} />
-                    Filtrar por Data
-                  </Button>
-                  <Button
-                    rounded={4}
-                    size="sm"
-                    fontSize="xs"
-                    fontWeight={500}
-                    px={3}
-                    py={1.5}
-                    w="full"
-                    gap={1.5}
-                    bgGradient="linear-gradient(180deg, #f5f9fe 47.86%, #d5e9ff 123.81%)"
-                    shadow="0px 0px 0px 1px #99c7ff inset, 0px 0px 0px 2px #fff inset"
-                    color="#131D53"
-                  >
-                    <SlidersHorizontal size={16} />
-                    Filtrar
-                  </Button>
                 </HStack>
               </Box>
 
@@ -437,38 +440,6 @@ export default function HotLinks() {
                     onChange={(e) => handleSearchChange(e.target.value)}
                   />
                 </HStack>
-                <Button
-                  rounded={4}
-                  size="sm"
-                  fontSize="xs"
-                  fontWeight={500}
-                  px={3}
-                  py={1.5}
-                  gap={1.5}
-                  bgGradient="linear-gradient(180deg, #f5f9fe 47.86%, #d5e9ff 123.81%)"
-                  shadow="0px 0px 0px 1px #99c7ff inset, 0px 0px 0px 2px #fff inset"
-                  color="#131D53"
-                  flexShrink={0}
-                >
-                  <Calendar size={16} />
-                  Filtrar por Data
-                </Button>
-                <Button
-                  rounded={4}
-                  size="sm"
-                  fontSize="xs"
-                  fontWeight={500}
-                  px={3}
-                  py={1.5}
-                  gap={1.5}
-                  bgGradient="linear-gradient(180deg, #f5f9fe 47.86%, #d5e9ff 123.81%)"
-                  shadow="0px 0px 0px 1px #99c7ff inset, 0px 0px 0px 2px #fff inset"
-                  color="#131D53"
-                  flexShrink={0}
-                >
-                  <SlidersHorizontal size={16} />
-                  Filtrar
-                </Button>
               </HStack>
             </Box>
           </PageHeader>
@@ -477,9 +448,17 @@ export default function HotLinks() {
               display="grid"
               gridTemplateColumns={{
                 base: '1fr',
-                md: 'repeat(auto-fit, minmax(530px, 1fr))',
+                md: 'repeat(auto-fit, minmax(320px, 1fr))',
               }}
-              gap={{ base: 2, md: 3, lg: 4 }}
+              sx={{
+                '@media (min-width: 700px)': {
+                  gridTemplateColumns: 'repeat(2, 1fr)',
+                },
+                '@media (min-width: 768px)': {
+                  gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))',
+                },
+              }}
+              gap={3}
               flex="1"
               alignContent="start"
             >
@@ -494,6 +473,9 @@ export default function HotLinks() {
   }
 
   if (error) {
+    const isProductsError = productsError && !linksError
+    const isServerError = error?.response?.status === 500
+
     return (
       <>
         <Head>
@@ -510,7 +492,13 @@ export default function HotLinks() {
           </PageHeader>
           <PageContent>
             <ErrorState
-              description="Não foi possível carregar seus links. Verifique sua conexão e tente novamente."
+              description={
+                isProductsError && isServerError
+                  ? 'Erro no servidor ao carregar produtos. Nossa equipe técnica foi notificada. Tente novamente em alguns minutos.'
+                  : isProductsError
+                  ? 'Não foi possível carregar informações dos produtos. Alguns dados podem estar limitados.'
+                  : 'Não foi possível carregar seus links. Verifique sua conexão e tente novamente.'
+              }
               onRetry={retry}
             />
           </PageContent>
@@ -544,31 +532,11 @@ export default function HotLinks() {
                       rounded={4}
                       lineHeight="120%"
                     >
-                      {linksData?.meta?.total_items || 0}
+                      {totalLinks}
                     </Box>
                   )}
                 </HStack>
               </Flex>
-              <Button
-                rounded={4}
-                h={8}
-                fontSize="xs"
-                fontWeight={600}
-                px={3}
-                onClick={onOpen}
-                color="#fff"
-                bgGradient="linear-gradient(180deg, #559DFF -27.08%, #1854DD 123.81%);"
-                shadow="0px 0px 0px 1px #0055F4, 0px -1px 0px 0px rgba(0, 56, 169, 0.30) inset, 0px 1px 1px 0px rgba(255, 255, 255, 0.60) inset"
-                _hover={{
-                  bgGradient:
-                    'linear-gradient(180deg, #6BA6FF -27.08%, #2A65E8 123.81%)',
-                  shadow:
-                    '0px 0px 0px 1px #1F70F1, 0px -1px 0px 0px rgba(0, 56, 169, 0.40) inset, 0px 1px 1px 0px rgba(255, 255, 255, 0.70) inset',
-                }}
-                transition="all 0.2s ease"
-              >
-                Criar Link
-              </Button>
             </Flex>
 
             <Box display={{ base: 'block', md: 'none' }}>
@@ -608,40 +576,6 @@ export default function HotLinks() {
                   value={searchTerm}
                   onChange={(e) => handleSearchChange(e.target.value)}
                 />
-              </HStack>
-              <HStack gap={2} justify="space-between">
-                <Button
-                  rounded={4}
-                  size="sm"
-                  fontSize="xs"
-                  fontWeight={500}
-                  px={3}
-                  py={1.5}
-                  w="full"
-                  gap={1.5}
-                  bgGradient="linear-gradient(180deg, #f5f9fe 47.86%, #d5e9ff 123.81%)"
-                  shadow="0px 0px 0px 1px #99c7ff inset, 0px 0px 0px 2px #fff inset"
-                  color="#131D53"
-                >
-                  <Calendar size={16} />
-                  Filtrar por Data
-                </Button>
-                <Button
-                  rounded={4}
-                  size="sm"
-                  fontSize="xs"
-                  fontWeight={500}
-                  px={3}
-                  py={1.5}
-                  w="full"
-                  gap={1.5}
-                  bgGradient="linear-gradient(180deg, #f5f9fe 47.86%, #d5e9ff 123.81%)"
-                  shadow="0px 0px 0px 1px #99c7ff inset, 0px 0px 0px 2px #fff inset"
-                  color="#131D53"
-                >
-                  <SlidersHorizontal size={16} />
-                  Filtrar
-                </Button>
               </HStack>
             </Box>
 
@@ -688,52 +622,176 @@ export default function HotLinks() {
                   onChange={(e) => handleSearchChange(e.target.value)}
                 />
               </HStack>
-              <Button
-                rounded={4}
-                size="sm"
-                fontSize="xs"
-                fontWeight={500}
-                px={3}
-                py={1.5}
-                gap={1.5}
-                bgGradient="linear-gradient(180deg, #f5f9fe 47.86%, #d5e9ff 123.81%)"
-                shadow="0px 0px 0px 1px #99c7ff inset, 0px 0px 0px 2px #fff inset"
-                color="#131D53"
-                flexShrink={0}
-              >
-                <Calendar size={16} />
-                Filtrar por Data
-              </Button>
-              <Button
-                rounded={4}
-                size="sm"
-                fontSize="xs"
-                fontWeight={500}
-                px={3}
-                py={1.5}
-                gap={1.5}
-                bgGradient="linear-gradient(180deg, #f5f9fe 47.86%, #d5e9ff 123.81%)"
-                shadow="0px 0px 0px 1px #99c7ff inset, 0px 0px 0px 2px #fff inset"
-                color="#131D53"
-                flexShrink={0}
-              >
-                <SlidersHorizontal size={16} />
-                Filtrar
-              </Button>
             </HStack>
           </Box>
         </PageHeader>
 
         <PageContent>
+          <Box w="full" h="32px">
+            <Flex
+              w="full"
+              bg="#F7FAFC"
+              borderRadius={6}
+              border="1px solid #DEE6F2"
+              overflow="hidden"
+            >
+              <Button
+                flex={1}
+                h="32px"
+                py="6px"
+                borderRadius={6}
+                border="none"
+                fontSize="sm"
+                fontWeight={400}
+                lineHeight="120%"
+                fontFamily="Geist"
+                color="#131D53"
+                bg={activeTab === 'active' ? undefined : 'transparent'}
+                bgGradient={
+                  activeTab === 'active'
+                    ? 'linear-gradient(180deg, #f5f9fe 47.86%, #d5e9ff 123.81%)'
+                    : undefined
+                }
+                shadow={
+                  activeTab === 'active'
+                    ? '0px 0px 0px 1px #99c7ff inset, 0px 0px 0px 2px #fff inset'
+                    : undefined
+                }
+                _hover={
+                  activeTab === 'active'
+                    ? {
+                        bgGradient:
+                          'linear-gradient(180deg, #eef7fe 47.86%, #c5ddff 123.81%)',
+                        shadow:
+                          '0px 0px 0px 1px #80b3ff inset, 0px 0px 0px 2px #fff inset',
+                      }
+                    : { bg: '#E6F3FF' }
+                }
+                onClick={() => setActiveTab('active')}
+                transition="all 0.2s ease"
+                display="flex"
+                alignItems="center"
+                justifyContent="center"
+                gap={2}
+              >
+                <Text
+                  color="#131D53"
+                  fontSize="sm"
+                  fontWeight={400}
+                  lineHeight="120%"
+                  fontFamily="Geist"
+                >
+                  Links Ativos
+                </Text>
+                <Box
+                  px={1.5}
+                  py={0.5}
+                  borderRadius="4px"
+                  border="1px solid #37B24D"
+                  bg="#F2FBF3"
+                >
+                  <Text
+                    color="#49694C"
+                    fontFamily="Geist"
+                    fontSize="sm"
+                    fontWeight={600}
+                    lineHeight="16px"
+                    letterSpacing="-0.15px"
+                  >
+                    {totalActiveLinks}
+                  </Text>
+                </Box>
+              </Button>
+
+              <Button
+                flex={1}
+                h="32px"
+                py="6px"
+                borderRadius={6}
+                border="none"
+                fontSize="sm"
+                fontWeight={400}
+                lineHeight="120%"
+                fontFamily="Geist"
+                color="#131D53"
+                isDisabled={totalExpiredLinks === 0}
+                bg={activeTab === 'expired' ? undefined : 'transparent'}
+                bgGradient={
+                  activeTab === 'expired'
+                    ? 'linear-gradient(180deg, #f5f9fe 47.86%, #d5e9ff 123.81%)'
+                    : undefined
+                }
+                shadow={
+                  activeTab === 'expired'
+                    ? '0px 0px 0px 1px #99c7ff inset, 0px 0px 0px 2px #fff inset'
+                    : undefined
+                }
+                _hover={
+                  activeTab === 'expired'
+                    ? {
+                        bgGradient:
+                          'linear-gradient(180deg, #eef7fe 47.86%, #c5ddff 123.81%)',
+                        shadow:
+                          '0px 0px 0px 1px #80b3ff inset, 0px 0px 0px 2px #fff inset',
+                      }
+                    : { bg: '#E6F3FF' }
+                }
+                onClick={() => setActiveTab('expired')}
+                transition="all 0.2s ease"
+                display="flex"
+                alignItems="center"
+                justifyContent="center"
+                gap={2}
+              >
+                <Text
+                  color="#131D53"
+                  fontSize="sm"
+                  fontWeight={400}
+                  lineHeight="120%"
+                  fontFamily="Geist"
+                >
+                  Expirados
+                </Text>
+                <Box
+                  px={1.5}
+                  py={0.5}
+                  borderRadius="4px"
+                  border="1px solid #FF7878"
+                  bg="#FFEAEA"
+                >
+                  <Text
+                    color="#620000"
+                    fontFamily="Geist"
+                    fontSize="14px"
+                    fontWeight={600}
+                    lineHeight="16px"
+                    letterSpacing="-0.15px"
+                  >
+                    {totalExpiredLinks}
+                  </Text>
+                </Box>
+              </Button>
+            </Flex>
+          </Box>
+
           <Box minH="60vh" display="flex" flexDirection="column">
             {isProcessingData ? (
               <Box
                 display="grid"
                 gridTemplateColumns={{
                   base: '1fr',
-                  md: 'repeat(auto-fit, minmax(530px, 1fr))',
+                  md: 'repeat(auto-fill, minmax(320px, 1fr))',
                 }}
-                gap={{ base: 2, md: 3, lg: 4 }}
+                sx={{
+                  '@media (min-width: 700px)': {
+                    gridTemplateColumns: 'repeat(2, 1fr)',
+                  },
+                  '@media (min-width: 768px)': {
+                    gridTemplateColumns:
+                      'repeat(auto-fill, minmax(320px, 1fr))',
+                  },
+                }}
+                gap={3}
                 flex="1"
                 alignContent="start"
               >
@@ -743,56 +801,40 @@ export default function HotLinks() {
                   )
                 )}
               </Box>
-            ) : /* Empty state para busca sem resultados */ hotlinks.length ===
-                0 && hasActiveSearch ? (
-              <Box
-                flex="1"
-                display="flex"
-                alignItems="center"
-                justifyContent="center"
-              >
-                <EmptyState
-                  icon={Search}
-                  title="Nenhum link encontrado"
-                  description={`Não encontramos links para "${debouncedSearchTerm}". Tente ajustar o termo de busca.`}
-                  actionButton={{
-                    label: 'Limpar Busca',
-                    onClick: clearSearch,
-                    variant: 'outline',
-                  }}
-                />
-              </Box>
+            ) : hotlinks.length === 0 && hasActiveSearch ? (
+              <EmptyState
+                icon={Search}
+                title="Nenhum link encontrado"
+                description={`Não encontramos links para "${debouncedSearchTerm}". Tente ajustar o termo de busca.`}
+                actionButton={{
+                  label: 'Limpar Busca',
+                  onClick: clearSearch,
+                  variant: 'outline',
+                }}
+              />
             ) : hotlinks.length === 0 ? (
-              <Box
-                flex="1"
-                display="flex"
-                alignItems="center"
-                justifyContent="center"
-              >
-                <EmptyState
-                  icon={Link}
-                  title="Nenhum link criado ainda"
-                  description="Crie seu primeiro link de afiliado para começar a ganhar comissões!"
-                  actionButton={{
-                    label: 'Criar Primeiro Link',
-                    onClick: onOpen,
-                    variant: 'solid',
-                  }}
-                />
-              </Box>
+              <EmptyState
+                icon={Link}
+                title="Nenhum link criado"
+                description="Crie seu primeiro link de afiliado para começar a ganhar comissões!"
+              />
             ) : (
-              /* Renderiza os links filtrados em grid responsivo */
               <Box
                 display="grid"
                 gridTemplateColumns={{
                   base: '1fr',
-                  md:
-                    hotlinks.length === 1
-                      ? '1fr'
-                      : 'repeat(auto-fit, minmax(530px, 1fr))',
+                  md: 'repeat(auto-fill, minmax(320px, 1fr))',
                 }}
-                gap={{ base: 2, md: 3, lg: 4 }}
-                maxW={hotlinks.length === 1 ? '530px' : 'none'}
+                sx={{
+                  '@media (min-width: 700px)': {
+                    gridTemplateColumns: 'repeat(2, 1fr)',
+                  },
+                  '@media (min-width: 768px)': {
+                    gridTemplateColumns:
+                      'repeat(auto-fill, minmax(320px, 1fr))',
+                  },
+                }}
+                gap={3}
                 flex="1"
                 alignContent="start"
               >
@@ -802,24 +844,27 @@ export default function HotLinks() {
               </Box>
             )}
 
-            {!isProcessingData && hotlinks.length > 0 && linksData?.meta && (
-              <Box
-                mt={3}
-                pb={4}
-                bg="white"
-                borderRadius="12px"
-                borderWidth={1}
-                borderColor="#DEE6F2"
-              >
-                <Pagination
-                  currentPage={currentPage}
-                  totalPages={linksData.meta.last_page || 1}
-                  onPageChange={setCurrentPage}
-                  isLoading={isLoadingLinks}
-                  align={{ base: 'center', md: 'flex-end' }}
-                />
-              </Box>
-            )}
+            {!isProcessingData &&
+              hotlinks.length > 0 &&
+              linksData?.meta &&
+              linksData.meta.last_page > 1 && (
+                <Box
+                  mt={3}
+                  pb={4}
+                  bg="white"
+                  borderRadius="12px"
+                  borderWidth={1}
+                  borderColor="#DEE6F2"
+                >
+                  <Pagination
+                    currentPage={currentPage}
+                    totalPages={linksData.meta.last_page || 1}
+                    onPageChange={setCurrentPage}
+                    isLoading={isLoadingLinks}
+                    align={{ base: 'center', md: 'flex-end' }}
+                  />
+                </Box>
+              )}
           </Box>
         </PageContent>
       </AppLayout>

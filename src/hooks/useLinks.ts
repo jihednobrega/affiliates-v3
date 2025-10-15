@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react'
-import { useQuery } from '@tanstack/react-query'
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { LinksService } from '@/services/links'
 import {
   LinksFilters,
@@ -42,6 +42,7 @@ export const useLinks = (initialFilters?: Partial<LinksFilters>) => {
       perpage: initialFilters?.perpage ?? filters.perpage,
       status: initialFilters?.status ?? filters.status,
       product: initialFilters?.product ?? filters.product,
+      view: initialFilters?.view ?? filters.view,
     }),
     [initialFilters, filters]
   )
@@ -275,6 +276,24 @@ export const useLinksSummary = () => {
     isLoading,
     error,
   }
+}
+
+export const useDeleteLink = () => {
+  const queryClient = useQueryClient()
+  const linksService = useMemo(() => new LinksService(), [])
+
+  return useMutation({
+    mutationFn: async (linkId: number) => {
+      const result = await linksService.deleteAffiliateLink(linkId)
+      return result
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['links'] })
+    },
+    onError: (error) => {
+      console.error('Erro ao deletar link:', error)
+    },
+  })
 }
 
 function getStatusLabel(status: string): string {

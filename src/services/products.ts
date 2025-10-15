@@ -6,7 +6,13 @@ import {
 } from './types/products.types'
 
 class ProductsService {
-  public async getProducts({ page, perpage }: GetProductsRequest) {
+  public async getProducts({
+    page,
+    perpage,
+    product,
+    featured,
+    orderBy,
+  }: GetProductsRequest) {
     const controller = new AbortController()
 
     const URL = `/products`
@@ -14,6 +20,11 @@ class ProductsService {
 
     if (page) params.page = page
     if (perpage) params.perpage = perpage
+    if (product) params.product = product
+    if (featured) params.featured = featured
+    if (orderBy) params.orderBy = orderBy
+
+    console.log('🔍 Fazendo requisição para /products com parâmetros:', params)
 
     try {
       const { data: response, status: statusResponse } =
@@ -21,9 +32,14 @@ class ProductsService {
           url: URL,
           method: 'GET',
           signal: controller.signal,
+          timeout: 45000,
           params: Object.keys(params).length > 0 ? params : undefined,
         })
 
+      console.log('✅ Resposta /products:', {
+        status: statusResponse,
+        hasData: !!response,
+      })
       return { response, status: statusResponse, controller }
     } catch (error) {
       console.error('❌ Erro na requisição /products:', error)
@@ -31,9 +47,6 @@ class ProductsService {
     }
   }
 
-  /**
-   * Busca produto específico por ID
-   */
   public async getProductById(productId: number) {
     const controller = new AbortController()
     const URL = `/products/${productId}`
@@ -43,14 +56,12 @@ class ProductsService {
         url: URL,
         method: 'GET',
         signal: controller.signal,
+        timeout: 30000, // 30 segundos para produto específico
       })
 
     return { response, status: statusResponse, controller }
   }
 
-  /**
-   * Busca múltiplos produtos por IDs
-   */
   public async getProductsByIds(productIds: number[]) {
     const controller = new AbortController()
 
