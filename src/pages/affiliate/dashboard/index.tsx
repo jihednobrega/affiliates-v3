@@ -27,12 +27,15 @@ import {
   HStack,
   useDisclosure,
   Divider,
+  Link as ChakraLink,
 } from '@chakra-ui/react'
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import { DateRange } from '@/types/dashboard.types'
 import { getDateRanges, formatDateSafe } from '@/utils/dashboardUtils'
 import { SquaresFourIcon } from '@/components/Icons'
 import { AppLayout } from '@/components/Layout'
+import { useAuth } from '@/hooks/useAuth'
+import { popupConfigByBrand } from '@/services/popupConfig'
 
 const PERIOD_OPTIONS = [
   ...getDateRanges(),
@@ -45,6 +48,9 @@ const PERIOD_OPTIONS = [
 ]
 
 export default function Dashboard() {
+  const { user, currentBrand, setUser } = useAuth()
+  const popupConfig = popupConfigByBrand[currentBrand?.name ?? '']
+
   const [selectedPeriod, setSelectedPeriod] = useState('current_month')
   const [customDateRange, setCustomDateRange] = useState<DateRange>({
     start_date: new Date().toISOString().split('T')[0],
@@ -52,6 +58,11 @@ export default function Dashboard() {
   })
   const [tempDateRange, setTempDateRange] = useState<DateRange>(customDateRange)
   const { isOpen, onOpen, onClose } = useDisclosure()
+  const {
+    isOpen: isPopupOpen,
+    onOpen: onPopupOpen,
+    onClose: onPopupClose,
+  } = useDisclosure()
 
   const dateRange = useMemo(() => {
     if (selectedPeriod === 'custom') {
@@ -136,6 +147,13 @@ export default function Dashboard() {
     onClose()
   }
 
+  useEffect(() => {
+    if (popupConfig && !user.showedPopUp) {
+      onPopupOpen()
+      setUser({ showedPopUp: true })
+    }
+  }, [popupConfig, user.showedPopUp])
+
   return (
     <>
       <Head>
@@ -200,7 +218,6 @@ export default function Dashboard() {
           <Ranking />
         </PageContent>
 
-        {/* Modal para seleção de datas personalizadas */}
         <Modal isOpen={isOpen} onClose={handleCustomDateCancel} size="xs">
           <ModalOverlay />
           <ModalContent>
@@ -278,6 +295,40 @@ export default function Dashboard() {
             </ModalFooter>
           </ModalContent>
         </Modal>
+
+        {popupConfig && (
+          <Modal
+            isOpen={isPopupOpen}
+            onClose={onPopupClose}
+            isCentered
+            size="xl"
+          >
+            <ModalOverlay />
+            <ModalContent maxW="520px">
+              <ModalCloseButton />
+              <ModalBody px={4} pb={4} pt={10}>
+                <ChakraLink
+                  href={popupConfig.link}
+                  isExternal
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  <Image
+                    src={popupConfig.image}
+                    alt={`Pop-up ${currentBrand?.name}`}
+                    width={500}
+                    height={500}
+                    style={{
+                      borderRadius: '8px',
+                      width: '100%',
+                      height: 'auto',
+                    }}
+                  />
+                </ChakraLink>
+              </ModalBody>
+            </ModalContent>
+          </Modal>
+        )}
       </AppLayout>
     </>
   )

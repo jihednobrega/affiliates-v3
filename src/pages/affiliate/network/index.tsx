@@ -151,6 +151,7 @@ export default function Network() {
     meta,
     loading,
     error,
+    errorStatus,
     retry,
   } = useNetwork({
     page: currentPage,
@@ -281,8 +282,12 @@ export default function Network() {
           </PageHeader>
           <PageContent>
             <ErrorState
-              description="Não foi possível carregar sua rede de afiliados. Verifique sua conexão e tente novamente."
-              onRetry={retry}
+              description={
+                errorStatus === 422
+                  ? error
+                  : 'Não foi possível carregar sua rede de afiliados. Verifique sua conexão e tente novamente.'
+              }
+              onRetry={errorStatus === 422 ? undefined : retry}
             />
           </PageContent>
         </AppLayout>
@@ -659,7 +664,12 @@ export default function Network() {
                           <Td px={4} color="#131D53" fontSize="sm">
                             {item.totalSales}
                           </Td>
-                          <Td px={4} fontSize="sm" fontWeight="medium">
+                          <Td
+                            px={4}
+                            color="#131D53"
+                            fontSize="sm"
+                            fontWeight="medium"
+                          >
                             {item.totalCommissions}
                           </Td>
                         </Tr>

@@ -4,6 +4,9 @@ import {
   GetAffiliateFinancesResponse,
   GetAffiliateExtractRequest,
   GetExtractResponse,
+  GetWithdrawalInfoResponse,
+  GetSimplifiedWithdrawalInfoResponse,
+  PostWithdrawalResponse,
 } from './types/finances.types'
 
 class FinancesService {
@@ -103,6 +106,71 @@ class FinancesService {
       console.error('Erro na requisição de export:', error)
       throw error
     }
+  }
+
+  public async getWithdrawalInfo(): Promise<{
+    response: GetWithdrawalInfoResponse
+    status: number
+    controller: AbortController
+  }> {
+    const controller = new AbortController()
+    const URL = `/affiliates/finances/withdraw`
+
+    try {
+      const { data: response, status } = await api<GetWithdrawalInfoResponse>({
+        url: URL,
+        method: 'GET',
+        signal: controller.signal,
+      })
+
+      return { response, status, controller }
+    } catch (error: any) {
+      if (error.response && error.response.status) {
+        return {
+          response: error.response.data,
+          status: error.response.status,
+          controller,
+        }
+      }
+
+      throw error
+    }
+  }
+
+  public async getSimplifiedWithdrawalInfo(): Promise<{
+    response: GetSimplifiedWithdrawalInfoResponse
+    status: number
+    controller: AbortController
+  }> {
+    const controller = new AbortController()
+    const URL = `/affiliates/finances/withdraw`
+
+    const { data: response, status } =
+      await api<GetSimplifiedWithdrawalInfoResponse>({
+        url: URL,
+        method: 'GET',
+        signal: controller.signal,
+      })
+
+    return { response, status, controller }
+  }
+
+  public async postWithdrawal(amount: string | number): Promise<{
+    response: PostWithdrawalResponse
+    status: number
+    controller: AbortController
+  }> {
+    const controller = new AbortController()
+    const URL = `/affiliates/finances/withdraw`
+
+    const { data: response, status } = await api<PostWithdrawalResponse>({
+      url: URL,
+      method: 'POST',
+      data: { amount },
+      signal: controller.signal,
+    })
+
+    return { response, status, controller }
   }
 }
 

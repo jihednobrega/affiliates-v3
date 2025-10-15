@@ -4,6 +4,7 @@ export interface GetAffiliateLinksRequest {
   page: number
   perpage: number
   product?: string
+  view?: string
 }
 
 export interface GetAffiliateLinksResponse
@@ -63,6 +64,7 @@ export interface LinksFilters {
   page: number
   perpage: number
   product?: string
+  view?: string
 }
 
 export interface LinksSummary {

@@ -3,6 +3,9 @@ import { DefaultResponse, ErrorResponse } from './default.types'
 export interface GetProductsRequest {
   page: number
   perpage: number
+  product?: string
+  featured?: string
+  orderBy?: string
 }
 
 export interface GetProductsResponse extends DefaultResponse, ErrorResponse {
@@ -47,4 +50,7 @@ export interface ProductsFilters {
   perpage: number
   category?: string
   search?: string
+  product?: string
+  featured?: string
+  orderBy?: string
 }

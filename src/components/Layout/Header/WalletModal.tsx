@@ -14,6 +14,7 @@ import { X } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { useAuth } from '@/hooks/useAuth'
 import { formatCurrency } from '@/utils/currency'
+import { useRouter } from 'next/router'
 
 interface WalletModalProps {
   isOpen: boolean
@@ -25,6 +26,7 @@ export const WalletModal: React.FC<WalletModalProps> = ({
   onClose,
 }) => {
   const { user, isLoggedIn } = useAuth()
+  const router = useRouter()
   const [cardPosition, setCardPosition] = useState('64px')
   useEffect(() => {
     if (isOpen) {
@@ -104,7 +106,7 @@ export const WalletModal: React.FC<WalletModalProps> = ({
                     lineHeight="16px"
                     mt={1}
                   >
-                    Lvl 09 - Super Vendedor
+                    Nível 4 - Expert
                   </Text>
                 </Box>
                 <Box
@@ -151,8 +153,12 @@ export const WalletModal: React.FC<WalletModalProps> = ({
             fontWeight={600}
             bgGradient="linear-gradient(180deg, #f5f9fe 47.86%, #d5e9ff 123.81%)"
             shadow="0px 0px 0px 1px #99c7ff inset, 0px 0px 0px 2px #fff inset"
+            onClick={() => {
+              onClose()
+              router.push('/affiliate/payments/')
+            }}
           >
-            Solicitar Saque
+            Ir para pagamentos
           </Button>
         </ModalFooter>
       </ModalContent>

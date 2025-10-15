@@ -55,18 +55,20 @@ export function AppLayout({ children }: AppLayoutProps) {
         <Box
           gridArea="sidebar"
           position="fixed"
-          top="100px"
+          top={16}
           left={0}
           bottom={0}
           w="240px"
           zIndex={10}
           borderRightWidth={1}
+          roundedTopLeft={{ base: 0, lg: 12 }}
+          overflow={'hidden'}
         >
           <Navigation isMobile={false} />
         </Box>
       )}
 
-      <Box gridArea="main" mt="100px" overflowY="auto">
+      <Box gridArea="main" mt={16} overflowY="auto">
         {children}
       </Box>
 

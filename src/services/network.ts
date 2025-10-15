@@ -22,15 +22,27 @@ class NetworkService {
     if (status) params.status = status
     if (search) params.name = search
 
-    const { data: response, status: statusResponse } =
-      await api<GetNetworkResponse>({
-        url: URL,
-        method: 'GET',
-        signal: controller.signal,
-        params: Object.keys(params).length > 0 ? params : undefined,
-      })
+    try {
+      const { data: response, status: statusResponse } =
+        await api<GetNetworkResponse>({
+          url: URL,
+          method: 'GET',
+          signal: controller.signal,
+          params: Object.keys(params).length > 0 ? params : undefined,
+        })
 
-    return { response, status: statusResponse, controller }
+      return { response, status: statusResponse, controller }
+    } catch (error: any) {
+      if (error.response) {
+        return {
+          response: error.response.data,
+          status: error.response.status,
+          controller,
+        }
+      }
+
+      throw error
+    }
   }
 
   public transform(affiliate: NetworkAffiliate): NetworkAffiliateFormatted {

@@ -4,6 +4,7 @@ export interface GetCampaignsRequest {
   page?: number
   perpage?: number
   status?: 'active' | 'inactive' | 'ended'
+  name?: string
 }
 
 export interface GetCampaignByIdRequest {
@@ -104,6 +105,7 @@ export interface CampaignForUI {
     thumbnail?: string
   }[]
   maxCommission?: number
+  commission?: string | number
 }
 
 export const transformCampaignApiToUI = (

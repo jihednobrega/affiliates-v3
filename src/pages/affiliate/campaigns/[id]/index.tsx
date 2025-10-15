@@ -1,10 +1,9 @@
 'use client'
 
-import { useMemo } from 'react'
+import { useMemo, useState, useEffect } from 'react'
 import { useCampaignById } from '@/hooks/useCampaigns'
-import { useSearch } from '@/hooks/useSearch'
 import { formatPercentage } from '@/utils/formatters'
-import { LoadingState, EmptyState, ErrorState } from '@/components/UI'
+import { EmptyState, ErrorState, Pagination } from '@/components/UI'
 import {
   Box,
   Text,
@@ -19,6 +18,7 @@ import {
   useDisclosure,
   Collapse,
   VStack,
+  Skeleton,
 } from '@chakra-ui/react'
 import { useRouter } from 'next/router'
 import Head from 'next/head'
@@ -29,18 +29,73 @@ import {
   Megaphone,
   Search,
   ShoppingBasket,
-  SlidersHorizontal,
   Tags,
 } from 'lucide-react'
-import { ProductCard } from '@/components/ProductCard'
-import { CreativesIcon } from '@/components/Icons'
 import { ShimmerBadge } from '@/components/UI/Badges'
+import { ProductCard } from '@/components/UI/ProductCard'
+
+function ProductsLoadingSkeleton() {
+  return (
+    <Grid
+      templateColumns={{
+        base: 'repeat(2, 1fr)',
+        md: 'repeat(auto-fill, minmax(270px, 1fr))',
+      }}
+      gap={3}
+    >
+      {Array.from({ length: 12 }).map((_, i) => (
+        <Box
+          key={i}
+          bg="white"
+          borderRadius="md"
+          borderWidth={1}
+          borderColor="#DEE6F2"
+          overflow="hidden"
+          h="fit-content"
+        >
+          <Box p={3}>
+            <HStack justify="space-between" mb={2}>
+              <Skeleton height="16px" width="60%" />
+              <Skeleton height="20px" width="60px" borderRadius="4px" />
+            </HStack>
+            <Skeleton height="14px" width="80%" mb={3} />
+          </Box>
+
+          <Skeleton height="200px" />
+
+          <Box p={3}>
+            <Skeleton height="14px" width="40%" mb={2} />
+            <Skeleton height="20px" width="70%" mb={3} />
+            <Skeleton height="32px" width="100%" borderRadius="6px" />
+          </Box>
+        </Box>
+      ))}
+    </Grid>
+  )
+}
 
 export default function CampaignDetailsPage() {
   const router = useRouter()
   const { id } = router.query
   const toast = useToast()
   const { isOpen, onToggle } = useDisclosure()
+
+  const [currentPage, setCurrentPage] = useState(1)
+  const [searchTerm, setSearchTerm] = useState('')
+  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState('')
+  const itemsPerPage = 12
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearchTerm(searchTerm)
+    }, 500)
+
+    return () => clearTimeout(timer)
+  }, [searchTerm])
+
+  useEffect(() => {
+    setCurrentPage(1)
+  }, [debouncedSearchTerm])
 
   const {
     data: campaign,
@@ -66,16 +121,36 @@ export default function CampaignDetailsPage() {
     }
   }, [campaignsError, campaignsLoading, toast, router])
 
-  const {
-    searchTerm,
-    setSearchTerm,
-    filteredData: filteredProducts,
-    clearSearch,
-    hasActiveSearch,
-  } = useSearch({
-    data: campaign?.products || [],
-    searchFields: ['name'],
-  })
+  const { filteredProducts, totalPages, hasActiveSearch } = useMemo(() => {
+    const allProducts = campaign?.products || []
+
+    const filtered = debouncedSearchTerm.trim()
+      ? allProducts.filter((product) =>
+          product.name.toLowerCase().includes(debouncedSearchTerm.toLowerCase())
+        )
+      : allProducts
+
+    const total = Math.ceil(filtered.length / itemsPerPage)
+    const startIndex = (currentPage - 1) * itemsPerPage
+    const endIndex = startIndex + itemsPerPage
+    const paginated = filtered.slice(startIndex, endIndex)
+
+    return {
+      filteredProducts: paginated,
+      totalPages: total,
+      hasActiveSearch: debouncedSearchTerm.trim().length > 0,
+      totalItems: filtered.length,
+    }
+  }, [campaign?.products, debouncedSearchTerm, currentPage, itemsPerPage])
+
+  const handleSearchChange = (value: string) => {
+    setSearchTerm(value)
+  }
+
+  const clearSearch = () => {
+    setSearchTerm('')
+    setDebouncedSearchTerm('')
+  }
 
   const maxCommission = campaign?.maxCommission || 0
 
@@ -95,7 +170,9 @@ export default function CampaignDetailsPage() {
             </Flex>
           </PageHeader>
           <PageContent>
-            <LoadingState type="skeleton" count={8} />
+            <Box mb={{ base: '60px', lg: '80px' }}>
+              <ProductsLoadingSkeleton />
+            </Box>
           </PageContent>
         </AppLayout>
       </>
@@ -149,7 +226,7 @@ export default function CampaignDetailsPage() {
                 <HStack>
                   <ShimmerBadge
                     icon={'/assets/icons/extra-commission.svg'}
-                    text="Comissões até"
+                    text="Comissões de"
                     percentage={formatPercentage(maxCommission)}
                   />
                 </HStack>
@@ -300,63 +377,20 @@ export default function CampaignDetailsPage() {
                   minW="fit-content"
                   _placeholder={{ color: '#C5CDDC', fontSize: 'sm' }}
                   value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
+                  onChange={(e) => handleSearchChange(e.target.value)}
                 />
               </HStack>
             </Box>
-
-            <HStack gap={2} justify="space-between">
-              <Button
-                rounded={4}
-                size="sm"
-                fontSize="xs"
-                fontWeight={500}
-                px={3}
-                py={1.5}
-                w="full"
-                gap={1.5}
-                bgGradient="linear-gradient(180deg, #f5f9fe 47.86%, #d5e9ff 123.81%)"
-                shadow="0px 0px 0px 1px #99c7ff inset, 0px 0px 0px 2px #fff inset"
-                color="#131D53"
-                isDisabled={
-                  !campaign?.creatives || campaign.creatives.length === 0
-                }
-                onClick={() =>
-                  router.push(`/affiliate/campaigns/${id}/creatives`)
-                }
-              >
-                <CreativesIcon boxSize={6} />
-                Criativos
-              </Button>
-              <Button
-                rounded={4}
-                size="sm"
-                fontSize="xs"
-                fontWeight={500}
-                px={3}
-                py={1.5}
-                w="full"
-                gap={1.5}
-                bgGradient="linear-gradient(180deg, #f5f9fe 47.86%, #d5e9ff 123.81%)"
-                shadow="0px 0px 0px 1px #99c7ff inset, 0px 0px 0px 2px #fff inset"
-                color="#131D53"
-              >
-                <SlidersHorizontal size={16} />
-                Filtrar
-              </Button>
-            </HStack>
           </Box>
         </PageHeader>
 
-        {/* Grid de produtos */}
         <PageContent>
-          <Box mb={{ base: '60px', lg: '80px' }}>
-            {/* Empty state para busca sem resultados */}
+          <Box>
             {filteredProducts.length === 0 && hasActiveSearch ? (
               <EmptyState
                 icon={Search}
                 title="Nenhum produto encontrado"
-                description={`Não encontramos produtos para "${searchTerm}". Tente ajustar o termo de busca.`}
+                description={`Não encontramos produtos para "${debouncedSearchTerm}". Tente ajustar o termo de busca.`}
                 actionButton={{
                   label: 'Limpar Busca',
                   onClick: clearSearch,
@@ -373,15 +407,36 @@ export default function CampaignDetailsPage() {
               <Grid
                 templateColumns={{
                   base: 'repeat(2, 1fr)',
-                  md: 'repeat(auto-fit, minmax(270px, 1fr))',
+                  md: 'repeat(auto-fill, minmax(270px, 1fr))',
                 }}
-                gap={{ base: 2, md: 3, lg: 4 }}
+                gap={3}
               >
                 {filteredProducts.map((product) => (
                   <ProductCard key={product.id} product={product} />
                 ))}
               </Grid>
             )}
+
+            {!campaignsLoading &&
+              filteredProducts.length > 0 &&
+              totalPages > 1 && (
+                <Box
+                  mt={6}
+                  pb={4}
+                  bg="white"
+                  borderRadius="12px"
+                  borderWidth={1}
+                  borderColor="#DEE6F2"
+                >
+                  <Pagination
+                    currentPage={currentPage}
+                    totalPages={totalPages}
+                    onPageChange={setCurrentPage}
+                    isLoading={false}
+                    align={{ base: 'center', md: 'flex-end' }}
+                  />
+                </Box>
+              )}
           </Box>
           <Box
             position="fixed"
@@ -390,23 +445,7 @@ export default function CampaignDetailsPage() {
             right={0}
             p={4}
             zIndex={15}
-          >
-            <Button
-              w="full"
-              py={1.5}
-              px={3}
-              gap={1.5}
-              size="lg"
-              rounded={8}
-              fontSize="sm"
-              fontWeight={600}
-              color="#001589"
-              bgGradient="linear-gradient(180deg, #f5f9fe 47.86%, #d5e9ff 123.81%)"
-              shadow="0px 4px 4px 0px rgba(0, 0, 0, 0.25), 0px 0px 0px 1px #99C7FF inset, 0px 0px 0px 2px #FFF inset"
-            >
-              Criar Link da Campanha
-            </Button>
-          </Box>
+          ></Box>
         </PageContent>
       </AppLayout>
     </>

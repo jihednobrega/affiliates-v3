@@ -1,6 +1,9 @@
 import { useState, useEffect, useCallback, useMemo } from 'react'
 import { NetworkService } from '@/services/network'
-import { NetworkAffiliateFormatted } from '@/services/types/network.types'
+import {
+  NetworkAffiliate,
+  NetworkAffiliateFormatted,
+} from '@/services/types/network.types'
 
 interface UseNetworkReturn {
   data: NetworkAffiliateFormatted[]
@@ -12,6 +15,7 @@ interface UseNetworkReturn {
   } | null
   loading: boolean
   error: string | null
+  errorStatus: number | null
   retry: () => void
   refetch: () => void
 }
@@ -42,7 +46,6 @@ interface UseNetworkOptions {
   page?: number
 }
 
-// Cache simples para evitar múltiplas requisições
 const networkCache = new Map<
   string,
   {
@@ -73,6 +76,7 @@ export const useNetwork = (
   } | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [errorStatus, setErrorStatus] = useState<number | null>(null)
 
   const networkService = useMemo(() => new NetworkService(), [])
 
@@ -83,13 +87,17 @@ export const useNetwork = (
   const fetchNetwork = useCallback(async () => {
     setLoading(true)
     setError(null)
+    setErrorStatus(null)
 
     try {
+      console.log('🔍 Buscando rede de afiliados da API...')
+
       if (enableCache && networkCache.has(cacheKey)) {
         const cached = networkCache.get(cacheKey)!
         const isExpired = Date.now() - cached.timestamp > CACHE_DURATION
 
         if (!isExpired) {
+          console.log('✅ Usando dados do cache')
           setData(cached.data)
           setMeta(cached.meta)
           setLoading(false)
@@ -99,10 +107,22 @@ export const useNetwork = (
 
       const networkResult = await networkService.getNetworkAffiliates({
         page,
-        perpage: 10, // 10 afiliados por página
+        perpage: 10,
         status,
         search,
       })
+
+      if (networkResult.status === 422) {
+        const errorMessage =
+          networkResult.response?.message ||
+          'Você não tem permissão para acessar esta funcionalidade.'
+        setError(errorMessage)
+        setErrorStatus(422)
+        setData([])
+        setMeta(null)
+        setLoading(false)
+        return
+      }
 
       if (!networkResult.response?.success) {
         throw new Error(
@@ -114,11 +134,17 @@ export const useNetwork = (
       let metaData = null
 
       if (networkResult.response.data?.list) {
-        affiliatesData = networkResult.response.data.list.map((affiliate) =>
-          networkService.transform(affiliate)
+        affiliatesData = networkResult.response.data.list.map(
+          (affiliate: NetworkAffiliate) => networkService.transform(affiliate)
         )
         metaData = networkResult.response.data.meta
       }
+
+      console.log(
+        `✅ ${affiliatesData.length} afiliados encontrados de ${
+          metaData?.total_items || 0
+        } total`
+      )
 
       if (enableCache) {
         networkCache.set(cacheKey, {
@@ -133,6 +159,7 @@ export const useNetwork = (
     } catch (err: any) {
       console.error('❌ Erro ao buscar rede de afiliados:', err)
 
+      const statusCode = err.response?.status || null
       const errorMessage =
         err.response?.data?.message ||
         err.response?.statusText ||
@@ -140,6 +167,7 @@ export const useNetwork = (
         'Erro desconhecido ao buscar rede de afiliados'
 
       setError(errorMessage)
+      setErrorStatus(statusCode)
       setData([])
       setMeta(null)
     } finally {
@@ -167,6 +195,7 @@ export const useNetwork = (
     meta,
     loading,
     error,
+    errorStatus,
     retry,
     refetch,
   }

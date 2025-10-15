@@ -29,7 +29,6 @@ import {
   Skeleton,
   SkeletonText,
   useColorModeValue,
-  useBreakpointValue,
 } from '@chakra-ui/react'
 import { AppLayout } from '@/components/Layout'
 import { PageHeader, PageContent } from '@/components/Layout/PageLayout'
@@ -47,6 +46,13 @@ import {
 } from 'lucide-react'
 import { useRouter } from 'next/router'
 import { Pagination } from '@/components/UI'
+import {
+  WithdrawalValidationModal,
+  WithdrawalModal,
+  WithdrawalResponseModal,
+  CreateAccountModal,
+} from '@/components/Modals'
+import { FinancesService } from '@/services/finances'
 
 const STATUS_OPTIONS = [
   { value: '', label: 'Todos os Status' },
@@ -105,6 +111,40 @@ export default function PaymentsPage() {
   const router = useRouter()
   const toast = useToast()
 
+  const [isClient, setIsClient] = useState(false)
+  const [perPage, setPerPage] = useState(10)
+
+  const [isWithdrawalValidationOpen, setIsWithdrawalValidationOpen] =
+    useState(false)
+  const [isWithdrawalModalOpen, setIsWithdrawalModalOpen] = useState(false)
+  const [isWithdrawalResponseOpen, setIsWithdrawalResponseOpen] =
+    useState(false)
+  const [withdrawalValidationData, setWithdrawalValidationData] = useState<{
+    reason: string
+    message: string
+    extraMessage?: string
+    userType?: 'PF' | 'PJ'
+  } | null>(null)
+  const [withdrawalResponseData, setWithdrawalResponseData] = useState<{
+    message: string
+    isSuccess: boolean
+    isError: boolean
+  } | null>(null)
+
+  const [isCreateAccountModalOpen, setIsCreateAccountModalOpen] =
+    useState(false)
+  const [accountType, setAccountType] = useState<'PF' | 'PJ'>('PF')
+  const [accountReason, setAccountReason] = useState<string>('')
+  const [accountExtraMessage, setAccountExtraMessage] = useState<string>('')
+
+  const financesService = new FinancesService()
+
+  useEffect(() => {
+    setIsClient(true)
+    const breakpointValue = window.innerWidth >= 768 ? 15 : 10
+    setPerPage(breakpointValue)
+  }, [])
+
   const {
     summary: financialSummary,
     isLoading: isLoadingSummary,
@@ -121,7 +161,7 @@ export default function PaymentsPage() {
     setPage,
     exportFinances,
   } = useFinances({
-    perPage: useBreakpointValue({ base: 10, md: 15 }) || 10,
+    perPage: perPage,
   })
 
   const [searchTerm, setSearchTerm] = useState('')
@@ -196,6 +236,11 @@ export default function PaymentsPage() {
     return 'gray'
   }
 
+  const getOriginLabel = (origin: string) => {
+    if (!origin) return 'Direta'
+    return origin.toLowerCase() === 'referral' ? 'Indicado' : 'Direta'
+  }
+
   const handleExportFinances = async () => {
     try {
       const { response } = await exportFinances(
@@ -235,6 +280,107 @@ export default function PaymentsPage() {
     router.push('/affiliate/payments/statement')
   }
 
+  const handleWithdrawalRequest = async () => {
+    try {
+      console.log('🔄 Iniciando solicitação de saque...')
+      const { response, status } = await financesService.getWithdrawalInfo()
+
+      console.log('📊 Resposta da API:', { status, response })
+
+      if (status === 200) {
+        console.log('✅ Status 200: Abrindo modal de saque direto')
+        setIsWithdrawalModalOpen(true)
+      } else if (status === 422) {
+        console.log('⚠️ Status 422: Impedimento encontrado')
+        const validationData = {
+          reason: response.data?.reason || '',
+          message: response.message || 'Ocorreu um erro na validação',
+          extraMessage: response.data?.extra,
+          userType: response.data?.user_type as 'PF' | 'PJ',
+        }
+
+        console.log('📝 Dados de validação:', validationData)
+
+        setWithdrawalValidationData(validationData)
+        setIsWithdrawalValidationOpen(true)
+
+        console.log('🎭 Modal de validação deveria abrir agora')
+      }
+    } catch (error: any) {
+      console.error('❌ Erro na solicitação de saque:', error)
+
+      const errorMessage =
+        error?.response?.data?.message ||
+        'Erro ao validar saque. Tente novamente.'
+
+      toast({
+        title: 'Erro',
+        description: errorMessage,
+        status: 'error',
+        duration: 5000,
+        isClosable: true,
+      })
+    }
+  }
+
+  const handleWithdrawalSuccess = (message: string) => {
+    setWithdrawalResponseData({
+      message,
+      isSuccess: true,
+      isError: false,
+    })
+    setIsWithdrawalResponseOpen(true)
+  }
+
+  const handleCreateAccount = (type: 'PF' | 'PJ') => {
+    console.log('🏦 Iniciando criação de conta digital:', { type })
+    console.log('📋 Dados atuais de validação:', withdrawalValidationData)
+
+    setAccountType(type)
+
+    setAccountReason(withdrawalValidationData?.reason || '')
+    setAccountExtraMessage(withdrawalValidationData?.extraMessage || '')
+    setIsCreateAccountModalOpen(true)
+    setIsWithdrawalValidationOpen(false)
+
+    console.log('✅ Estados atualizados para abrir modal de criação de conta')
+  }
+
+  const handleCreateAccountSuccess = () => {
+    setIsCreateAccountModalOpen(false)
+    setIsWithdrawalValidationOpen(false)
+
+    setWithdrawalValidationData(null)
+    setAccountReason('')
+    setAccountExtraMessage('')
+
+    toast({
+      title: 'Conta criada com sucesso!',
+      description:
+        'Seus documentos estão sendo analisados. Você será notificado em breve.',
+      status: 'success',
+      duration: 5000,
+      isClosable: true,
+    })
+
+    setTimeout(async () => {
+      try {
+        const { response } = await financesService.getWithdrawalInfo()
+        if (response?.data?.reason === 'account_pending') {
+          toast({
+            title: 'Conta em análise',
+            description:
+              response.message ||
+              'Sua conta está sendo analisada. Aguarde a verificação.',
+            status: 'info',
+            duration: 7000,
+            isClosable: true,
+          })
+        }
+      } catch (error) {}
+    }, 1500)
+  }
+
   const currentStatus = STATUS_OPTIONS.find(
     (option) => option.value === filters.status
   )
@@ -255,14 +401,13 @@ export default function PaymentsPage() {
                 </Text>
               </Flex>
 
-              {financialSummary && (
+              {isClient && financialSummary && (
                 <Button
-                  display={{ base: 'none', md: 'flex' }}
                   size="sm"
                   fontSize="xs"
                   fontWeight={500}
-                  px={4}
-                  py={2}
+                  px={window.innerWidth >= 768 ? 4 : 3}
+                  py={window.innerWidth >= 768 ? 2 : 1.5}
                   color="#fff"
                   bgGradient="linear-gradient(180deg, #559DFF -27.08%, #1854DD 123.81%)"
                   shadow="0px 0px 0px 1px #0055F4, 0px -1px 0px 0px rgba(0, 56, 169, 0.30) inset, 0px 1px 1px 0px rgba(255, 255, 255, 0.60) inset"
@@ -273,39 +418,8 @@ export default function PaymentsPage() {
                       '0px 0px 0px 1px #1F70F1, 0px -1px 0px 0px rgba(0, 56, 169, 0.40) inset, 0px 1px 1px 0px rgba(255, 255, 255, 0.70) inset',
                   }}
                   transition="all 0.2s ease"
-                  isDisabled={
-                    !financialSummary ||
-                    financialSummary.availableCommissions <
-                      financialSummary.minimumWithdrawAmount
-                  }
-                >
-                  Solicitar Saque
-                </Button>
-              )}
-
-              {financialSummary && (
-                <Button
-                  display={{ base: 'flex', md: 'none' }}
-                  size="sm"
-                  fontSize="xs"
-                  fontWeight={500}
-                  px={3}
-                  py={1.5}
-                  color="#fff"
-                  bgGradient="linear-gradient(180deg, #559DFF -27.08%, #1854DD 123.81%)"
-                  shadow="0px 0px 0px 1px #0055F4, 0px -1px 0px 0px rgba(0, 56, 169, 0.30) inset, 0px 1px 1px 0px rgba(255, 255, 255, 0.60) inset"
-                  _hover={{
-                    bgGradient:
-                      'linear-gradient(180deg, #6BA6FF -27.08%, #2A65E8 123.81%)',
-                    shadow:
-                      '0px 0px 0px 1px #1F70F1, 0px -1px 0px 0px rgba(0, 56, 169, 0.40) inset, 0px 1px 1px 0px rgba(255, 255, 255, 0.70) inset',
-                  }}
-                  transition="all 0.2s ease"
-                  isDisabled={
-                    !financialSummary ||
-                    financialSummary.availableCommissions <
-                      financialSummary.minimumWithdrawAmount
-                  }
+                  isDisabled={!financialSummary}
+                  onClick={handleWithdrawalRequest}
                 >
                   Solicitar Saque
                 </Button>
@@ -313,7 +427,112 @@ export default function PaymentsPage() {
             </Flex>
 
             <VStack spacing={3} align="stretch">
-              <HStack spacing={3} display={{ base: 'none', md: 'flex' }}>
+              {isClient && window.innerWidth >= 768 && (
+                <HStack spacing={3}>
+                  <HStack
+                    flex={1}
+                    h="34px"
+                    position="relative"
+                    rounded={4}
+                    borderWidth={1}
+                    borderColor="#DEE6F2"
+                    gap={0}
+                    transition="all 0.2s"
+                    _focusWithin={{
+                      borderColor: '#1F70F1',
+                      boxShadow: '0 0 0 1px #1F70F1',
+                      bg: 'white',
+                    }}
+                  >
+                    <HStack
+                      justify="center"
+                      p={2}
+                      w="34px"
+                      h="34px"
+                      borderRightWidth={1}
+                      borderRightColor="#dee6f2"
+                    >
+                      <Search color="#C5CDDC" size={20} />
+                    </HStack>
+                    <Input
+                      p={2}
+                      variant="unstyled"
+                      placeholder="Pesquisar por produto ou SKU"
+                      flex="1"
+                      h="full"
+                      _placeholder={{ color: '#C5CDDC', fontSize: 'sm' }}
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                    />
+                  </HStack>
+
+                  <Menu>
+                    <MenuButton>
+                      <Button
+                        rounded={6}
+                        size="sm"
+                        fontSize="xs"
+                        fontWeight={500}
+                        px={3}
+                        py={1.5}
+                        bgGradient="linear-gradient(180deg, #f5f9fe 47.86%, #d5e9ff 123.81%)"
+                        shadow="0px 0px 0px 1px #99c7ff inset, 0px 0px 0px 2px #fff inset"
+                        color="#131D53"
+                        leftIcon={<SlidersHorizontal size={16} />}
+                      >
+                        {currentStatus?.label || 'Filtrar Status'}
+                      </Button>
+                    </MenuButton>
+                    <MenuList>
+                      {STATUS_OPTIONS.map((option) => (
+                        <MenuItem
+                          key={option.value}
+                          onClick={() => setStatus(option.value || undefined)}
+                          bg={
+                            filters.status === option.value
+                              ? 'blue.50'
+                              : 'transparent'
+                          }
+                          color={
+                            filters.status === option.value
+                              ? 'blue.600'
+                              : 'inherit'
+                          }
+                          fontSize="sm"
+                        >
+                          {option.label}
+                        </MenuItem>
+                      ))}
+                    </MenuList>
+                  </Menu>
+
+                  {financialSummary && (
+                    <Button
+                      size="sm"
+                      fontSize="xs"
+                      fontWeight={500}
+                      px={3}
+                      py={1.5}
+                      leftIcon={<FileText size={16} />}
+                      bgGradient="linear-gradient(180deg, #f5f9fe 47.86%, #d5e9ff 123.81%)"
+                      shadow="0px 0px 0px 1px #99c7ff inset, 0px 0px 0px 2px #fff inset"
+                      color="#131D53"
+                      _hover={{
+                        bgGradient:
+                          'linear-gradient(180deg, #eef7fe 47.86%, #c5ddff 123.81%)',
+                        shadow:
+                          '0px 0px 0px 1px #80b3ff inset, 0px 0px 0px 2px #fff inset',
+                      }}
+                      transition="all 0.2s ease"
+                      onClick={handleViewStatement}
+                    >
+                      Ver Extrato
+                    </Button>
+                  )}
+                </HStack>
+              )}
+
+              {isClient && window.innerWidth < 768 && (
                 <HStack
                   flex={1}
                   h="34px"
@@ -350,185 +569,81 @@ export default function PaymentsPage() {
                     onChange={(e) => setSearchTerm(e.target.value)}
                   />
                 </HStack>
+              )}
 
-                <Menu>
-                  <MenuButton>
-                    <Button
-                      rounded={4}
-                      size="sm"
-                      fontSize="xs"
-                      fontWeight={500}
-                      px={3}
-                      py={1.5}
-                      bgGradient="linear-gradient(180deg, #f5f9fe 47.86%, #d5e9ff 123.81%)"
-                      shadow="0px 0px 0px 1px #99c7ff inset, 0px 0px 0px 2px #fff inset"
-                      color="#131D53"
-                      leftIcon={<SlidersHorizontal size={16} />}
-                    >
-                      {currentStatus?.label || 'Filtrar Status'}
-                    </Button>
-                  </MenuButton>
-                  <MenuList>
-                    {STATUS_OPTIONS.map((option) => (
-                      <MenuItem
-                        key={option.value}
-                        onClick={() => setStatus(option.value || undefined)}
-                        bg={
-                          filters.status === option.value
-                            ? 'blue.50'
-                            : 'transparent'
-                        }
-                        color={
-                          filters.status === option.value
-                            ? 'blue.600'
-                            : 'inherit'
-                        }
-                        fontSize="sm"
-                      >
-                        {option.label}
-                      </MenuItem>
-                    ))}
-                  </MenuList>
-                </Menu>
+              {isClient && window.innerWidth < 768 && (
+                <HStack spacing={2} w="full">
+                  <Box flex={1}>
+                    <Menu>
+                      <MenuButton w="full">
+                        <Button
+                          w="full"
+                          rounded={4}
+                          size="sm"
+                          fontSize="xs"
+                          fontWeight={500}
+                          px={3}
+                          py={1.5}
+                          bgGradient="linear-gradient(180deg, #f5f9fe 47.86%, #d5e9ff 123.81%)"
+                          shadow="0px 0px 0px 1px #99c7ff inset, 0px 0px 0px 2px #fff inset"
+                          color="#131D53"
+                          leftIcon={<SlidersHorizontal size={16} />}
+                        >
+                          Filtrar Status
+                        </Button>
+                      </MenuButton>
+                      <MenuList>
+                        {STATUS_OPTIONS.map((option) => (
+                          <MenuItem
+                            key={option.value}
+                            onClick={() => setStatus(option.value || undefined)}
+                            bg={
+                              filters.status === option.value
+                                ? 'blue.50'
+                                : 'transparent'
+                            }
+                            color={
+                              filters.status === option.value
+                                ? 'blue.600'
+                                : 'inherit'
+                            }
+                            fontSize="sm"
+                          >
+                            {option.label}
+                          </MenuItem>
+                        ))}
+                      </MenuList>
+                    </Menu>
+                  </Box>
 
-                {financialSummary && (
-                  <Button
-                    size="sm"
-                    fontSize="xs"
-                    fontWeight={500}
-                    px={3}
-                    py={1.5}
-                    leftIcon={<FileText size={16} />}
-                    bgGradient="linear-gradient(180deg, #f5f9fe 47.86%, #d5e9ff 123.81%)"
-                    shadow="0px 0px 0px 1px #99c7ff inset, 0px 0px 0px 2px #fff inset"
-                    color="#131D53"
-                    _hover={{
-                      bgGradient:
-                        'linear-gradient(180deg, #eef7fe 47.86%, #c5ddff 123.81%)',
-                      shadow:
-                        '0px 0px 0px 1px #80b3ff inset, 0px 0px 0px 2px #fff inset',
-                    }}
-                    transition="all 0.2s ease"
-                    onClick={handleViewStatement}
-                  >
-                    Ver Extrato
-                  </Button>
-                )}
-              </HStack>
-
-              <HStack
-                display={{ base: 'flex', md: 'none' }}
-                flex={1}
-                h="34px"
-                position="relative"
-                rounded={4}
-                borderWidth={1}
-                borderColor="#DEE6F2"
-                gap={0}
-                transition="all 0.2s"
-                _focusWithin={{
-                  borderColor: '#1F70F1',
-                  boxShadow: '0 0 0 1px #1F70F1',
-                  bg: 'white',
-                }}
-              >
-                <HStack
-                  justify="center"
-                  p={2}
-                  w="34px"
-                  h="34px"
-                  borderRightWidth={1}
-                  borderRightColor="#dee6f2"
-                >
-                  <Search color="#C5CDDC" size={20} />
-                </HStack>
-                <Input
-                  p={2}
-                  variant="unstyled"
-                  placeholder="Pesquisar por produto ou SKU"
-                  flex="1"
-                  h="full"
-                  _placeholder={{ color: '#C5CDDC', fontSize: 'sm' }}
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                />
-              </HStack>
-
-              <HStack
-                spacing={2}
-                display={{ base: 'flex', md: 'none' }}
-                w="full"
-              >
-                <Box flex={1}>
-                  <Menu>
-                    <MenuButton w="full">
+                  {financialSummary && (
+                    <Box flex={1}>
                       <Button
                         w="full"
-                        rounded={4}
                         size="sm"
                         fontSize="xs"
                         fontWeight={500}
                         px={3}
                         py={1.5}
+                        leftIcon={<FileText size={14} />}
                         bgGradient="linear-gradient(180deg, #f5f9fe 47.86%, #d5e9ff 123.81%)"
                         shadow="0px 0px 0px 1px #99c7ff inset, 0px 0px 0px 2px #fff inset"
                         color="#131D53"
-                        leftIcon={<SlidersHorizontal size={16} />}
+                        _hover={{
+                          bgGradient:
+                            'linear-gradient(180deg, #eef7fe 47.86%, #c5ddff 123.81%)',
+                          shadow:
+                            '0px 0px 0px 1px #80b3ff inset, 0px 0px 0px 2px #fff inset',
+                        }}
+                        transition="all 0.2s ease"
+                        onClick={handleViewStatement}
                       >
-                        Filtrar Status
+                        Ver Extrato
                       </Button>
-                    </MenuButton>
-                    <MenuList>
-                      {STATUS_OPTIONS.map((option) => (
-                        <MenuItem
-                          key={option.value}
-                          onClick={() => setStatus(option.value || undefined)}
-                          bg={
-                            filters.status === option.value
-                              ? 'blue.50'
-                              : 'transparent'
-                          }
-                          color={
-                            filters.status === option.value
-                              ? 'blue.600'
-                              : 'inherit'
-                          }
-                          fontSize="sm"
-                        >
-                          {option.label}
-                        </MenuItem>
-                      ))}
-                    </MenuList>
-                  </Menu>
-                </Box>
-
-                {financialSummary && (
-                  <Box flex={1}>
-                    <Button
-                      w="full"
-                      size="sm"
-                      fontSize="xs"
-                      fontWeight={500}
-                      px={3}
-                      py={1.5}
-                      leftIcon={<FileText size={14} />}
-                      bgGradient="linear-gradient(180deg, #f5f9fe 47.86%, #d5e9ff 123.81%)"
-                      shadow="0px 0px 0px 1px #99c7ff inset, 0px 0px 0px 2px #fff inset"
-                      color="#131D53"
-                      _hover={{
-                        bgGradient:
-                          'linear-gradient(180deg, #eef7fe 47.86%, #c5ddff 123.81%)',
-                        shadow:
-                          '0px 0px 0px 1px #80b3ff inset, 0px 0px 0px 2px #fff inset',
-                      }}
-                      transition="all 0.2s ease"
-                      onClick={handleViewStatement}
-                    >
-                      Ver Extrato
-                    </Button>
-                  </Box>
-                )}
-              </HStack>
+                    </Box>
+                  )}
+                </HStack>
+              )}
             </VStack>
           </Box>
         </PageHeader>
@@ -562,7 +677,10 @@ export default function PaymentsPage() {
                         Saldo Estimado
                       </Text>
                     </HStack>
-                    <Text className="text-sm text-[#131d53]">
+                    <Text
+                      className="text-sm text-[#131d53]"
+                      suppressHydrationWarning
+                    >
                       {formatCurrency(financialSummary?.availableCommissions)}
                     </Text>
                   </Box>
@@ -576,7 +694,10 @@ export default function PaymentsPage() {
                         Saldo Mínimo
                       </Text>
                     </HStack>
-                    <Text className="text-sm text-[#131d53]">
+                    <Text
+                      className="text-sm text-[#131d53]"
+                      suppressHydrationWarning
+                    >
                       {formatCurrency(financialSummary?.minimumWithdrawAmount)}
                     </Text>
                   </Box>
@@ -590,7 +711,10 @@ export default function PaymentsPage() {
                         Vendas Efetuadas
                       </Text>
                     </HStack>
-                    <Text className="text-sm text-[#131d53]">
+                    <Text
+                      className="text-sm text-[#131d53]"
+                      suppressHydrationWarning
+                    >
                       {formatCurrency(financialSummary?.totalSales)}
                     </Text>
                   </Box>
@@ -604,7 +728,10 @@ export default function PaymentsPage() {
                         Próxima Liberação
                       </Text>
                     </HStack>
-                    <Text className="text-sm text-[#131d53]">
+                    <Text
+                      className="text-sm text-[#131d53]"
+                      suppressHydrationWarning
+                    >
                       {financialSummary?.nextPayDate
                         ? formatPayDate(financialSummary.nextPayDate)
                         : 'Não informado'}
@@ -656,6 +783,11 @@ export default function PaymentsPage() {
                   shadow="0px 0px 0px 1px #99c7ff inset, 0px 0px 0px 2px #fff inset"
                   color="#131D53"
                   onClick={handleExportFinances}
+                  isDisabled={!filteredCommissions.length}
+                  opacity={!filteredCommissions.length ? 0.5 : 1}
+                  cursor={
+                    !filteredCommissions.length ? 'not-allowed' : 'pointer'
+                  }
                 >
                   Exportar
                 </Button>
@@ -779,7 +911,7 @@ export default function PaymentsPage() {
                         </Tr>
                       </Thead>
                       <Tbody fontSize="xs">
-                        {filteredCommissions.map((commission) => (
+                        {filteredCommissions.map((commission, index) => (
                           <Tr
                             key={`${commission.id}-${commission.vendor_order_id}`}
                             _hover={{ bg: '#F3F6FA' }}
@@ -822,12 +954,12 @@ export default function PaymentsPage() {
                             <Td px={4} color="#131D53">
                               {commission.vendor_order_id}
                             </Td>
-                            <Td px={4} color="#131D53">
+                            <Td px={4} color="#131D53" suppressHydrationWarning>
                               {new Date(
                                 commission.updated_at
                               ).toLocaleDateString('pt-BR')}
                             </Td>
-                            <Td px={4} color="#131D53">
+                            <Td px={4} color="#131D53" suppressHydrationWarning>
                               {formatCurrency(commission.product_price)}
                             </Td>
                             <Td px={4} color="#131D53">
@@ -838,10 +970,10 @@ export default function PaymentsPage() {
                                 noOfLines={1}
                                 title={commission.commission_origin}
                               >
-                                {commission.commission_origin || '-'}
+                                {getOriginLabel(commission.commission_origin)}
                               </Text>
                             </Td>
-                            <Td px={4} color="#131D53">
+                            <Td px={4} color="#131D53" suppressHydrationWarning>
                               {formatCurrency(commission.commission)}
                             </Td>
                             <Td px={4} textAlign="center">
@@ -866,72 +998,72 @@ export default function PaymentsPage() {
 
                 {data?.meta && (
                   <>
-                    <Flex
-                      justify="flex-end"
-                      px={3}
-                      pt={2}
-                      display={{ base: 'flex', md: 'none' }}
-                    >
-                      <Text fontSize="xs" color={mutedTextColor}>
-                        Mostrando{' '}
-                        {data.meta
-                          ? `${
-                              (data.meta.current_page - 1) *
-                                data.meta.pagesize +
-                              1
-                            }-${Math.min(
-                              data.meta.current_page * data.meta.pagesize,
-                              data.meta.total_items
-                            )} de ${data.meta.total_items}`
-                          : filteredCommissions.length}{' '}
-                        comissões
-                      </Text>
-                    </Flex>
-
-                    <Flex
-                      justify="space-between"
-                      align="center"
-                      px={3}
-                      pt={2}
-                      display={{ base: 'none', md: 'flex' }}
-                    >
-                      <Text fontSize="sm" color={mutedTextColor}>
-                        Mostrando{' '}
-                        {data.meta
-                          ? `${
-                              (data.meta.current_page - 1) *
-                                data.meta.pagesize +
-                              1
-                            }-${Math.min(
-                              data.meta.current_page * data.meta.pagesize,
-                              data.meta.total_items
-                            )} de ${data.meta.total_items}`
-                          : filteredCommissions.length}{' '}
-                        comissões
-                      </Text>
-
-                      {data.meta.last_page > 1 && (
-                        <Pagination
-                          currentPage={data.meta.current_page}
-                          totalPages={data.meta.last_page}
-                          onPageChange={setPage}
-                          isLoading={isLoadingCommissions}
-                          align="flex-end"
-                        />
-                      )}
-                    </Flex>
-
-                    {data.meta.last_page > 1 && (
-                      <Box display={{ base: 'block', md: 'none' }} pt={2}>
-                        <Pagination
-                          currentPage={data.meta.current_page}
-                          totalPages={data.meta.last_page}
-                          onPageChange={setPage}
-                          isLoading={isLoadingCommissions}
-                          align="center"
-                        />
-                      </Box>
+                    {isClient && window.innerWidth < 768 && (
+                      <Flex justify="flex-end" px={3} pt={2}>
+                        <Text fontSize="xs" color={mutedTextColor}>
+                          Mostrando{' '}
+                          {data.meta
+                            ? `${
+                                (data.meta.current_page - 1) *
+                                  data.meta.pagesize +
+                                1
+                              }-${Math.min(
+                                data.meta.current_page * data.meta.pagesize,
+                                data.meta.total_items
+                              )} de ${data.meta.total_items}`
+                            : filteredCommissions.length}{' '}
+                          comissões
+                        </Text>
+                      </Flex>
                     )}
+
+                    {isClient && window.innerWidth >= 768 && (
+                      <Flex
+                        justify="space-between"
+                        align="center"
+                        px={3}
+                        pt={2}
+                      >
+                        <Text fontSize="sm" color={mutedTextColor}>
+                          Mostrando{' '}
+                          {data.meta
+                            ? `${
+                                (data.meta.current_page - 1) *
+                                  data.meta.pagesize +
+                                1
+                              }-${Math.min(
+                                data.meta.current_page * data.meta.pagesize,
+                                data.meta.total_items
+                              )} de ${data.meta.total_items}`
+                            : filteredCommissions.length}{' '}
+                          comissões
+                        </Text>
+
+                        {data.meta.last_page > 1 && (
+                          <Pagination
+                            currentPage={data.meta.current_page}
+                            totalPages={data.meta.last_page}
+                            onPageChange={setPage}
+                            isLoading={isLoadingCommissions}
+                            align="flex-end"
+                          />
+                        )}
+                      </Flex>
+                    )}
+
+                    {isClient &&
+                      window.innerWidth < 768 &&
+                      data.meta.last_page > 1 && (
+                        <Box pt={2}>
+                          <Pagination
+                            currentPage={data.meta.current_page}
+                            totalPages={data.meta.last_page}
+                            onPageChange={setPage}
+                            isLoading={isLoadingCommissions}
+                            align="center"
+                          />
+                        </Box>
+                      )}
                   </>
                 )}
               </>
@@ -972,6 +1104,39 @@ export default function PaymentsPage() {
           </Box>
         </PageContent>
       </AppLayout>
+
+      <WithdrawalValidationModal
+        isOpen={isWithdrawalValidationOpen}
+        onClose={() => setIsWithdrawalValidationOpen(false)}
+        reason={withdrawalValidationData?.reason || ''}
+        message={withdrawalValidationData?.message || ''}
+        extraMessage={withdrawalValidationData?.extraMessage}
+        userType={withdrawalValidationData?.userType}
+        onCreateAccount={handleCreateAccount}
+      />
+
+      <WithdrawalModal
+        isOpen={isWithdrawalModalOpen}
+        onClose={() => setIsWithdrawalModalOpen(false)}
+        onWithdrawalSuccess={handleWithdrawalSuccess}
+      />
+
+      <WithdrawalResponseModal
+        isOpen={isWithdrawalResponseOpen}
+        onClose={() => setIsWithdrawalResponseOpen(false)}
+        message={withdrawalResponseData?.message || ''}
+        isSuccess={withdrawalResponseData?.isSuccess || false}
+        isError={withdrawalResponseData?.isError || false}
+      />
+
+      <CreateAccountModal
+        isOpen={isCreateAccountModalOpen}
+        onClose={() => setIsCreateAccountModalOpen(false)}
+        userType={accountType}
+        reason={accountReason}
+        extraMessage={accountExtraMessage}
+        onSuccess={handleCreateAccountSuccess}
+      />
     </>
   )
 }

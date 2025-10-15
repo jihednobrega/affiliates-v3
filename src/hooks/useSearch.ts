@@ -2,7 +2,7 @@ import { useState, useMemo, useCallback } from 'react'
 
 interface UseSearchOptions<T> {
   data: T[]
-  searchFields: (keyof T)[]
+  searchFields: (keyof T)[] // campos onde buscar
   initialTerm?: string
 }
 
