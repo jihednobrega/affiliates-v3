@@ -373,7 +373,7 @@ export const WithdrawalModal: React.FC<WithdrawalModalProps> = ({
                   ) : (
                     <HStack justify="space-between" w="full">
                       <Text fontSize="xs" color="#131D5399">
-                        Valor líquido a receber:
+                        Taxa de serviço ({applicableTax.label}):
                       </Text>
                       <Text fontSize="xs" fontWeight={600} color="#38A169">
                         {formatCurrency(withdrawalAmount)}

@@ -28,6 +28,16 @@ export interface UploadDocumentsResponse {
   }
 }
 
+export interface BrandData {
+  id: number
+  cnpj: string
+  corporate_name: string
+  brand_name: string
+  store_link: string
+  phone: string
+  logo?: string | null
+}
+
 export interface AffiliateProfileData {
   id: number
   name: string
@@ -46,6 +56,7 @@ export interface AffiliateProfileData {
   address: Address
   social_network: string | null
   profile_url: string | null
+  brand?: BrandData | null
 }
 
 export interface Address {
@@ -109,6 +120,12 @@ export interface UpdateProfileData {
     bank_name?: string
     pix_key?: string
     pix_type?: string
+  }
+
+  brand?: {
+    brand_name?: string
+    phone?: string
+    logo?: string | null
   }
 }
 

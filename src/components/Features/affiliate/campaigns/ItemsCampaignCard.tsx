@@ -1,7 +1,7 @@
-import { ShimmerBadge } from '@/components/UI/Badges'
 import { Box, Flex, Text } from '@chakra-ui/react'
-import { ProductImage } from '@/components/UI'
 import { formatPercentage, formatCurrency } from '@/utils/formatters'
+import { ProductImage } from '@/components/UI'
+import { ShimmerBadge } from '@/components/UI/Badges'
 
 interface ItemsCampaignCardProps {
   id: number
@@ -33,7 +33,13 @@ export function ItemsCampaignCard({
       flexDirection="column"
       justifyContent="space-between"
     >
-      <Flex justify="center" align="center" h="92px" mb={3}>
+      <Flex
+        justify="center"
+        align="center"
+        h="92px"
+        mb={3}
+        pointerEvents={'none'}
+      >
         <ProductImage
           src={image}
           alt={name}

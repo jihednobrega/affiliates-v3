@@ -26,3 +26,14 @@ export const formatCurrency = (value: number | string) => {
     currency: 'BRL',
   })
 }
+
+export const formatNumber = (value: number | string) => {
+  if (value === null || value === undefined || value === '') {
+    return '0'
+  }
+  const numValue = typeof value === 'string' ? parseFloat(value) : value
+  if (isNaN(numValue)) {
+    return '0'
+  }
+  return numValue.toLocaleString('pt-BR')
+}

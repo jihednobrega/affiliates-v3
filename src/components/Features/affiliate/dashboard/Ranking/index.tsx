@@ -1,9 +1,9 @@
 'use client'
 
+import { ShimmerBadge } from '@/components/UI/Badges'
 import { ProductTable } from './ProductTable'
 import { useDashboard } from '@/hooks/useDashboard'
-import { Box, Text, Skeleton } from '@chakra-ui/react'
-import { ShimmerBadge } from '@/components/UI/Badges'
+import { Box, Flex, Text, Skeleton } from '@chakra-ui/react'
 
 export default function Ranking() {
   const { productsData, isLoadingProducts, productsError, hasProductsData } =
@@ -11,65 +11,126 @@ export default function Ranking() {
 
   if (isLoadingProducts) {
     return (
-      <div className="flex flex-col gap-3 p-3 pb-4 border border-[#dee6f2] bg-white rounded-xl overflow-hidden container-shadow">
-        <h2 className="text-sm text-[#131d53] px-3">Meu Ranking</h2>
+      <Flex
+        flexDirection="column"
+        gap={3}
+        p={3}
+        pb={4}
+        border="1px solid"
+        borderColor="#dee6f2"
+        bg="white"
+        borderRadius="xl"
+        overflow="hidden"
+        className="container-shadow"
+      >
+        <Text fontSize="sm" color="#131d53" px={3}>
+          Meu Ranking
+        </Text>
         <Box display="flex" justifyContent="center" py={8}>
           <Skeleton height="365px" width="100%" rounded={6} />
         </Box>
-      </div>
+      </Flex>
     )
   }
 
   if (productsError) {
     return (
-      <div className="flex flex-col gap-3 p-3 pb-4 border border-[#dee6f2] bg-white rounded-xl overflow-hidden container-shadow">
-        <h2 className="text-sm text-[#131d53] px-3">Meu Ranking</h2>
+      <Flex
+        flexDirection="column"
+        gap={3}
+        p={3}
+        pb={4}
+        border="1px solid"
+        borderColor="#dee6f2"
+        bg="white"
+        borderRadius="xl"
+        overflow="hidden"
+        className="container-shadow"
+      >
+        <Text fontSize="sm" color="#131d53" px={3}>
+          Meu Ranking
+        </Text>
         <Box textAlign="center" py={8} color="red.500">
           <Text>Erro ao carregar produtos</Text>
         </Box>
-      </div>
+      </Flex>
     )
   }
 
   if (!hasProductsData || productsData.length === 0) {
     return (
-      <div className="flex flex-col gap-3 p-3 pb-4 border border-[#dee6f2] bg-white rounded-xl overflow-hidden container-shadow">
-        <h2 className="text-sm text-[#131d53] px-3">Meu Ranking</h2>
+      <Flex
+        flexDirection="column"
+        gap={3}
+        p={3}
+        pb={4}
+        border="1px solid"
+        borderColor="#dee6f2"
+        bg="white"
+        borderRadius="xl"
+        overflow="hidden"
+        className="container-shadow"
+      >
+        <Text fontSize="sm" color="#131d53" px={3}>
+          Meu Ranking
+        </Text>
         <Box textAlign="center" py={8} color="gray.500">
-          <Text>Nenhum produto encontrado</Text>
+          <Text>Ainda não há produtos no ranking</Text>
         </Box>
-      </div>
+      </Flex>
     )
   }
 
   return (
-    <div className="flex flex-col gap-3 p-3 pb-4 border border-[#dee6f2] bg-white rounded-xl overflow-hidden container-shadow">
-      <h2 className="text-sm text-[#131d53] px-3">Meu Ranking</h2>
-      <div className="flex flex-col gap-6">
-        <div className="overflow-hidden relative">
-          <div className="border rounded-md border-[#DEE6F2] overflow-scroll ">
+    <Flex
+      flexDirection="column"
+      gap={3}
+      p={3}
+      pb={4}
+      border="1px solid"
+      borderColor="#dee6f2"
+      bg="white"
+      borderRadius="xl"
+      overflow="hidden"
+      className="container-shadow"
+    >
+      <Text fontSize="sm" color="#131d53" px={3}>
+        Meu Ranking
+      </Text>
+      <Flex flexDirection="column" gap={6}>
+        <Box overflow="hidden" position="relative">
+          <Box
+            border="1px solid"
+            borderRadius="md"
+            borderColor="#DEE6F2"
+            overflow="scroll"
+          >
             <ProductTable data={productsData} />
-          </div>
-        </div>
-        <div className="flex gap-5 px-3">
-          <div className="flex items-center gap-2">
+          </Box>
+        </Box>
+        <Flex gap={5} px={3}>
+          <Flex align="center" gap={2}>
             <ShimmerBadge
               icon="/assets/icons/commission.svg"
               text=""
               percentage=""
             />
-            <span className="text-xs text-[#131d5399]">Comissão</span>
-          </div>
-          <div className="flex items-center gap-2">
+            <Text fontSize="xs" color="#131d5399">
+              Comissão
+            </Text>
+          </Flex>
+          <Flex align="center" gap={2}>
             <ShimmerBadge
               icon="/assets/icons/extra-commission.svg"
               text=""
               percentage=""
             />
-            <span className="text-xs text-[#131d5399]">Comissão Extra</span>
-          </div>
-        </div>
-      </div>
-    </div>
+            <Text fontSize="xs" color="#131d5399">
+              Comissão Extra
+            </Text>
+          </Flex>
+        </Flex>
+      </Flex>
+    </Flex>
   )
 }

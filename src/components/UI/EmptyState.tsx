@@ -75,6 +75,7 @@ export const EmptyState = ({
             maxW="400px"
             textAlign="center"
             lineHeight="1.5"
+            px={6}
           >
             {description}
           </Text>
@@ -83,9 +84,21 @@ export const EmptyState = ({
         {actionButton && (
           <Button
             onClick={actionButton.onClick}
-            variant={actionButton.variant || 'solid'}
-            colorScheme="blue"
             size="md"
+            px={4}
+            py={2}
+            rounded={6}
+            fontSize="sm"
+            fontWeight={500}
+            color="#131D53"
+            bgGradient="linear-gradient(180deg, #f5f9fe 47.86%, #d5e9ff 123.81%)"
+            shadow="0px 0px 0px 1px #99c7ff inset, 0px 0px 0px 2px #fff inset"
+            _hover={{
+              bgGradient:
+                'linear-gradient(180deg, #eef7fe 47.86%, #c5ddff 123.81%)',
+              shadow:
+                '0px 0px 0px 1px #80b3ff inset, 0px 0px 0px 2px #fff inset',
+            }}
           >
             {actionButton.label}
           </Button>

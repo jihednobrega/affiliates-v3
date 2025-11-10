@@ -1,5 +1,6 @@
 export * from './LoadingState'
 export * from './EmptyState'
 export * from './ErrorState'
-export { ProductImage } from './ProductImage'
+export * from './ProductImage'
 export * from './Pagination'
+export * from './AffiliateAutocomplete'

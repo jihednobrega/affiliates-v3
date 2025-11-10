@@ -5,6 +5,12 @@ import {
   GetCampaignByIdResponse,
   CampaignItem,
   CampaignForUI,
+  CreateCampaignRequest,
+  CreateCampaignResponse,
+  UpdateCampaignRequest,
+  UpdateCampaignResponse,
+  RemoveCampaignRequest,
+  RemoveCampaignResponse,
 } from './types/campaigns.types'
 import { ProductItem } from './types/products.types'
 import { ProductsService } from './products'
@@ -15,7 +21,9 @@ class CampaignsService {
   constructor() {
     this.productsService = new ProductsService()
   }
-
+  /**
+   * Busca lista de campanhas do afiliado
+   */
   public async getCampaigns({
     page,
     perpage,
@@ -42,6 +50,9 @@ class CampaignsService {
     return { response, status: statusResponse, controller }
   }
 
+  /**
+   * Busca campanha específica por ID
+   */
   public async getCampaignById(campaignId: number) {
     const controller = new AbortController()
     const URL = `/campaigns/${campaignId}`
@@ -56,6 +67,9 @@ class CampaignsService {
     return { response, status: statusResponse, controller }
   }
 
+  /**
+   * Busca campanhas ativas (filtro pré-definido)
+   */
   public async getActiveCampaigns({
     page = 1,
     perpage = 10,
@@ -63,6 +77,9 @@ class CampaignsService {
     return this.getCampaigns({ page, perpage, status: 'active' })
   }
 
+  /**
+   * Busca múltiplas campanhas por IDs
+   */
   public async getCampaignsByIds(campaignIds: number[]) {
     const controller = new AbortController()
 
@@ -81,6 +98,15 @@ class CampaignsService {
     return results.filter((result) => result.response?.success)
   }
 
+  // ===================================================================
+  // CÓDIGO TEMPORÁRIO - REMOVER QUANDO API /campaigns INCLUIR:
+  // - price e commission nos items[]
+  // - Dados completos dos produtos diretamente na resposta
+  // ===================================================================
+
+  /**
+   * Enriquece uma campanha com dados dos produtos
+   */
   public async enrichCampaign(campaign: CampaignItem): Promise<CampaignForUI> {
     try {
       const productIds = campaign.items.map((item) => item.id)
@@ -104,6 +130,9 @@ class CampaignsService {
     }
   }
 
+  /**
+   * Enriquece múltiplas campanhas com dados dos produtos
+   */
   public async enrichCampaigns(
     campaigns: CampaignItem[]
   ): Promise<CampaignForUI[]> {
@@ -138,6 +167,9 @@ class CampaignsService {
     }
   }
 
+  /**
+   * Busca um produto específico
+   */
   public async getProduct(productId: number): Promise<ProductItem | null> {
     try {
       const result = await this.productsService.getProductById(productId)
@@ -152,6 +184,13 @@ class CampaignsService {
     }
   }
 
+  // ===================================================================
+  // FIM DO CÓDIGO TEMPORÁRIO
+  // ===================================================================
+
+  /**
+   * Formata campanha para UI
+   */
   private formatCampaign(
     campaign: CampaignItem,
     productsMap: Map<number, ProductItem>
@@ -165,6 +204,7 @@ class CampaignsService {
       }
     }
 
+    // Converter comissão da campanha para número (prioritária)
     let campaignCommission = 0
     if (campaign.commission !== undefined && campaign.commission !== null) {
       const parsedCampaignCommission =
@@ -196,8 +236,10 @@ class CampaignsService {
             : 0
       }
 
-      let validCommission = campaignCommission
+      // NOVA LÓGICA: Usar comissão da campanha com prioridade
+      let validCommission = campaignCommission // Usar comissão da campanha primeiro
 
+      // Fallback para comissão do produto apenas se não há comissão da campanha
       if (
         validCommission === 0 &&
         productDetail?.commission !== undefined &&
@@ -217,20 +259,13 @@ class CampaignsService {
 
       return {
         id: item.id,
-        name: item.name || 'Produto sem nome',
-        image: item.image || '',
+        name: productDetail?.name || item.name || 'Produto sem nome',
+        image: productDetail?.image || item.image || '',
         price: validPrice,
         commissionPercentage: validCommission,
-        link: item.link || '',
+        link: productDetail?.url || item.link || '',
       }
     })
-
-    const maxCommissionFromProducts =
-      enrichedProducts.length > 0
-        ? Math.max(
-            ...enrichedProducts.map((product) => product.commissionPercentage)
-          )
-        : 0
 
     return {
       id: campaign.id,
@@ -240,13 +275,15 @@ class CampaignsService {
       periodEnd: formatDate(campaign.end_date),
       imageUrl: campaign.banner,
       status: 'active',
-      maxCommission: maxCommissionFromProducts,
-      commission: campaign.commission,
+      commission: campaign.commission, // Comissão da campanha
       products: enrichedProducts,
       creatives: [],
     }
   }
 
+  /**
+   * Valida se uma campanha tem produtos válidos
+   */
   public validateCampaign(campaign: CampaignItem): boolean {
     if (!campaign.items || campaign.items.length === 0) {
       return false
@@ -257,6 +294,96 @@ class CampaignsService {
     )
 
     return validItems.length > 0
+  }
+
+  // ===================================================================
+  // MÉTODOS CRUD (Brand - Criar/Editar/Deletar Campanhas)
+  // ===================================================================
+
+  /**
+   * Cria nova campanha (Brand)
+   */
+  public async createCampaign(request: CreateCampaignRequest) {
+    const controller = new AbortController()
+    const URL = `/campaigns`
+
+    try {
+      const { data: response, status: statusResponse } =
+        await api<CreateCampaignResponse>({
+          url: URL,
+          method: 'POST',
+          data: request,
+          signal: controller.signal,
+        })
+
+      return { response, status: statusResponse, controller }
+    } catch (error: any) {
+      if (error.response) {
+        return {
+          response: error.response.data,
+          status: error.response.status,
+          controller,
+        }
+      }
+      throw error
+    }
+  }
+
+  /**
+   * Atualiza campanha existente (Brand)
+   */
+  public async updateCampaign(request: UpdateCampaignRequest) {
+    const controller = new AbortController()
+    const URL = `/campaigns/${request.id}`
+
+    try {
+      const { data: response, status: statusResponse } =
+        await api<UpdateCampaignResponse>({
+          url: URL,
+          method: 'PATCH',
+          data: request,
+          signal: controller.signal,
+        })
+
+      return { response, status: statusResponse, controller }
+    } catch (error: any) {
+      if (error.response) {
+        return {
+          response: error.response.data,
+          status: error.response.status,
+          controller,
+        }
+      }
+      throw error
+    }
+  }
+
+  /**
+   * Remove campanha (Brand)
+   */
+  public async removeCampaign({ id }: RemoveCampaignRequest) {
+    const controller = new AbortController()
+    const URL = `/campaigns/${id}`
+
+    try {
+      const { data: response, status: statusResponse } =
+        await api<RemoveCampaignResponse>({
+          url: URL,
+          method: 'DELETE',
+          signal: controller.signal,
+        })
+
+      return { response, status: statusResponse, controller }
+    } catch (error: any) {
+      if (error.response) {
+        return {
+          response: error.response.data,
+          status: error.response.status,
+          controller,
+        }
+      }
+      throw error
+    }
   }
 }
 

@@ -1,4 +1,4 @@
-import { Box, VStack, Text, Button, Alert } from '@chakra-ui/react'
+import { Box, VStack, Text, Button, Alert, AlertIcon } from '@chakra-ui/react'
 import { RefreshCw, AlertTriangle } from 'lucide-react'
 import { COLORS } from '@/constants/colors'
 
@@ -24,6 +24,7 @@ export const ErrorState = ({
           icon: RefreshCw,
           defaultTitle: 'Problema de Conexão',
           color: 'orange.500',
+          iconColor: '#ED8936',
           bgColor: 'orange.50',
         }
       case 'warning':
@@ -31,6 +32,7 @@ export const ErrorState = ({
           icon: AlertTriangle,
           defaultTitle: 'Aviso',
           color: 'yellow.500',
+          iconColor: '#ECC94B',
           bgColor: 'yellow.50',
         }
       default:
@@ -38,6 +40,7 @@ export const ErrorState = ({
           icon: AlertTriangle,
           defaultTitle: 'Erro ao Carregar',
           color: 'red.500',
+          iconColor: '#E53E3E',
           bgColor: 'red.50',
         }
     }
@@ -83,7 +86,7 @@ export const ErrorState = ({
             justifyContent="center"
             shadow="sm"
           >
-            <Icon size={24} color={config.color} />
+            <Icon size={24} color={config.iconColor} />
           </Box>
 
           <VStack spacing={2}>

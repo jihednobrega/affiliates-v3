@@ -96,7 +96,7 @@ export function AffiliateCodeModal({
         <VStack py={{ base: 2, md: 3 }} spacing={2} align="center">
           <Image
             w={{ base: 70, md: 94 }}
-            src="/assets/saqueMessageSuccess.png"
+            src="/saqueMessageSuccess.png"
             alt="successful sales"
           />
         </VStack>
@@ -121,7 +121,7 @@ export function AffiliateCodeModal({
             </Text>
 
             <Image
-              src="/assets/indicacao_img_cropped.PNG"
+              src="/indicacao_img_cropped.PNG"
               alt="Indicação"
               maxW="100%"
               borderRadius="md"
