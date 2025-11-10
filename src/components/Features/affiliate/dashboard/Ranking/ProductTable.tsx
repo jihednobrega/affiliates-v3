@@ -19,7 +19,6 @@ import {
   Portal,
   Button,
 } from '@chakra-ui/react'
-import { ProductImage } from '@/components/UI'
 import {
   ChevronsUpDown,
   ChevronUp,
@@ -29,6 +28,7 @@ import {
   ExternalLink,
 } from 'lucide-react'
 import { RankingProduct } from '@/services/types/dashboard.types'
+import { ProductImage } from '@/components/UI'
 import { ShimmerBadge } from '@/components/UI/Badges'
 
 type ColumnKey =

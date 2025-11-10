@@ -18,7 +18,7 @@ const CACHE_CONTROL =
         Expires: 'Thu, 01 Jan 1970 00:00:00 GMT',
       }
 
-function api<T = unknown>({ headers, ...options }: ApiOptions) {
+function api<T = unknown>({ headers, timeout, ...options }: ApiOptions) {
   const token = Cookie.get('affiliates-token')
 
   return axios<T>({

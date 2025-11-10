@@ -58,7 +58,9 @@ export function InviteModalEmail({
 
     try {
       const formattedEmails = emailList.join(',')
-      const { status } = await invitesService.sendInvites(formattedEmails)
+      const { response, status } = await invitesService.sendInvites(
+        formattedEmails
+      )
 
       if (status === 200) {
         toast({

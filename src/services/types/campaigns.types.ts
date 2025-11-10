@@ -104,7 +104,6 @@ export interface CampaignForUI {
     url: string
     thumbnail?: string
   }[]
-  maxCommission?: number
   commission?: string | number
 }
 
@@ -130,7 +129,7 @@ export const transformCampaignApiToUI = (
     periodEnd: formatDate(apiCampaign.end_date),
     imageUrl: apiCampaign.banner,
     status: 'active',
-    maxCommission: commissionNumber,
+    commission: commissionNumber,
 
     products: apiCampaign.items.map((item) => ({
       id: item.id,
@@ -149,4 +148,50 @@ export const transformCampaignsApiToUI = (
   apiCampaigns: CampaignItem[]
 ): CampaignForUI[] => {
   return apiCampaigns.map(transformCampaignApiToUI)
+}
+
+export interface CreateCampaignRequest {
+  name: string
+  description?: string
+  banner?: string
+  commission: string
+  start_date: string
+  end_date: string
+  items: CampaignItemInput[]
+}
+
+export interface CreateCampaignResponse extends DefaultResponse, ErrorResponse {
+  data: {
+    id: number
+    name: string
+    description: string
+    banner: string
+    commission: string
+    start_date: string
+    end_date: string
+    brand_id: number
+    updated_at: string
+    created_at: string
+  }
+}
+
+export interface UpdateCampaignRequest extends CreateCampaignRequest {
+  id: number
+}
+
+export interface UpdateCampaignResponse extends DefaultResponse, ErrorResponse {
+  data: CreateCampaignResponse['data']
+}
+
+export interface RemoveCampaignRequest {
+  id: number
+}
+
+export interface RemoveCampaignResponse extends DefaultResponse, ErrorResponse {
+  data: null
+}
+
+export interface CampaignItemInput {
+  id: string
+  type: 'product' | 'category'
 }

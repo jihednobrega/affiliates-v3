@@ -28,6 +28,7 @@ export function ProductImage({
 }: ProductImageProps) {
   const [hasError, setHasError] = useState(false)
 
+  // Verificar se deve usar fallback antes de renderizar
   const shouldUseFallback = !src || src.trim() === '' || hasError
 
   const handleError = () => {
@@ -52,5 +53,3 @@ export function ProductImage({
     />
   )
 }
-
-export default ProductImage

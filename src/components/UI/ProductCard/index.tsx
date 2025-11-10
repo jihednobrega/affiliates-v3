@@ -1,4 +1,3 @@
-import { ShimmerBadge } from '@/components/UI/Badges'
 import {
   Box,
   Text,
@@ -12,6 +11,8 @@ import { Check, Copy, Share2, Loader2 } from 'lucide-react'
 import { memo, useState, useEffect } from 'react'
 import { formatPercentage, formatCurrency } from '@/utils/formatters'
 import { LinksService } from '@/services/links'
+import { ProductImage } from '../ProductImage'
+import { ShimmerBadge } from '../Badges'
 import { LinkAddIcon } from '@/components/Icons'
 
 interface ProductCardProps {
@@ -31,7 +32,6 @@ export const ProductCard = memo(({ product }: ProductCardProps) => {
   const [currentLink, setCurrentLink] = useState(product.link)
   const [isCreatingLink, setIsCreatingLink] = useState(false)
   const linksService = new LinksService()
-
   const hasExistingLink = Boolean(currentLink && currentLink.trim() !== '')
 
   useEffect(() => {
@@ -128,7 +128,7 @@ export const ProductCard = memo(({ product }: ProductCardProps) => {
       }
     } catch (error) {
       if ((error as Error).name !== 'AbortError') {
-        // Erro silencioso - usuário pode ter cancelado o compartilhamento
+        console.error('Erro ao compartilhar:', error)
       }
     }
   }
@@ -150,18 +150,19 @@ export const ProductCard = memo(({ product }: ProductCardProps) => {
       minW={{ base: 'auto', md: '270px' }}
     >
       <Flex justify="center" align="center" h="120px" py={3}>
-        <img
+        <ProductImage
           src={product.image}
           alt={product.name}
-          className="max-h-full w-auto object-contain"
-          loading="lazy"
+          maxHeight="100%"
+          width="auto"
+          objectFit="contain"
         />
       </Flex>
 
       <Box
         key={product.id}
         h="200px"
-        p={2}
+        p={3}
         shadow="0px 1px 1px 0px rgba(0, 13, 53, 0.15)"
         display="flex"
         flexDirection="column"

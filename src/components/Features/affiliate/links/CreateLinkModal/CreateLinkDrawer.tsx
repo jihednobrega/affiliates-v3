@@ -23,11 +23,11 @@ import {
   TabPanels,
   Tabs,
 } from '@chakra-ui/react'
-import { useState } from 'react'
 import ImageUploadBox from './ImageUploadBox'
-import { SharedSuccessModal } from './SharedSuccessModal'
-import { ShareModal } from './ShareModal'
 import TagsInputBox from './TagsInputBox'
+import { useState } from 'react'
+import { ShareModal } from './ShareModal'
+import { SharedSuccessModal } from './SharedSuccessModal'
 
 interface CreateLinkDrawerProps {
   isOpen: boolean
@@ -479,9 +479,7 @@ export function CreateLinkDrawer({ isOpen, onClose }: CreateLinkDrawerProps) {
                         </VStack>
                       </Box>
                     </TabPanel>
-                    <TabPanel px={0} pt={3} pb={0}>
-                      {/* Conteúdo da aba Marketing */}
-                    </TabPanel>
+                    <TabPanel px={0} pt={3} pb={0}></TabPanel>
                   </TabPanels>
                 </Tabs>
               </VStack>

@@ -1,6 +1,7 @@
 'use client'
 
 import { useMemo, useRef, useState, useEffect } from 'react'
+import { Box, Flex, Text } from '@chakra-ui/react'
 import {
   BarChart,
   Bar,
@@ -27,6 +28,21 @@ const MONTH_NAMES = [
   'Dez',
 ] as const
 
+const MONTH_NAMES_FULL = [
+  'Janeiro',
+  'Fevereiro',
+  'Março',
+  'Abril',
+  'Maio',
+  'Junho',
+  'Julho',
+  'Agosto',
+  'Setembro',
+  'Outubro',
+  'Novembro',
+  'Dezembro',
+] as const
+
 interface OrderChartProps {
   ordersData?: GetOrderEvolutionResponse['data']
   monthlyMetricsData?: Array<{
@@ -38,7 +54,10 @@ interface OrderChartProps {
   }>
 }
 
-export function OrderChart({ monthlyMetricsData }: OrderChartProps) {
+export function OrderChart({
+  ordersData,
+  monthlyMetricsData,
+}: OrderChartProps) {
   const chartData = useMemo(() => {
     if (!monthlyMetricsData || monthlyMetricsData.length === 0) {
       return []
@@ -136,7 +155,7 @@ export function OrderChart({ monthlyMetricsData }: OrderChartProps) {
   }, [chartData.length, containerWidth])
 
   return (
-    <div ref={containerRef} className="h-[268px] w-full">
+    <Box ref={containerRef} h="268px" w="full">
       <ResponsiveContainer width="100%" height="100%">
         <BarChart
           data={chartData}
@@ -202,39 +221,59 @@ export function OrderChart({ monthlyMetricsData }: OrderChartProps) {
             animationDuration={0}
             content={({ payload, label }) => {
               const items = payload?.filter((p) => p.name !== 'gap') ?? []
-
               const dataPoint = chartData.find((d) => d.monthWithYear === label)
               const fullMonthName = dataPoint?.monthFull || label
 
               return (
-                <div className="bg-white shadow p-3 rounded text-xs">
-                  <div className="font-medium mb-2 text-sm">
+                <Box
+                  bg="white"
+                  shadow="md"
+                  p={3}
+                  borderRadius="md"
+                  fontSize="xs"
+                >
+                  <Text
+                    fontWeight="medium"
+                    mb={2}
+                    fontSize="sm"
+                    color="#131D53"
+                  >
                     {fullMonthName}
-                  </div>
+                  </Text>
                   {items.map((item, index) => (
-                    <div
+                    <Flex
                       key={index}
-                      className="flex justify-between gap-4 text-[#131d53]"
+                      justify="space-between"
+                      gap={4}
+                      color="#131D53"
                     >
-                      <div className="flex gap-1.5">
-                        <div
-                          className={`bg-linear-to-b ${
-                            item.name === 'clicks'
-                              ? 'border border-[#99adff] bg-[#d9e7ff]'
-                              : 'from-[#5898FF] to-[#9EC3FF]'
-                          }  rounded-sm w-5 h-3.5`}
-                        ></div>
-
-                        <span className="text-xs text-[#131d5399]">
+                      <Flex gap={1.5} align="center">
+                        <Box
+                          border={item.name === 'clicks' ? '1px solid' : 'none'}
+                          borderColor={
+                            item.name === 'clicks' ? '#99ADFF' : 'transparent'
+                          }
+                          bg={
+                            item.name === 'clicks' ? '#D9E7FF' : 'transparent'
+                          }
+                          bgGradient={
+                            item.name !== 'clicks'
+                              ? 'linear(to-b, #5898FF, #9EC3FF)'
+                              : undefined
+                          }
+                          borderRadius="sm"
+                          w={5}
+                          h={3.5}
+                        />
+                        <Text fontSize="xs" color="#131D5399">
                           {item.name === 'clicks'
                             ? 'Cliques'
                             : item.name === 'orders'
                             ? 'Pedidos'
                             : item.name}
-                        </span>
-                      </div>
-
-                      <span className="text-[#131d53] text-xs">
+                        </Text>
+                      </Flex>
+                      <Text color="#131D53" fontSize="xs">
                         {typeof item.value === 'number'
                           ? item.value === 0
                             ? '0'
@@ -242,10 +281,10 @@ export function OrderChart({ monthlyMetricsData }: OrderChartProps) {
                             ? `${Math.round(item.value / 1000)}K`
                             : item.value.toString()
                           : ''}
-                      </span>
-                    </div>
+                      </Text>
+                    </Flex>
                   ))}
-                </div>
+                </Box>
               )
             }}
           />
@@ -271,6 +310,6 @@ export function OrderChart({ monthlyMetricsData }: OrderChartProps) {
           />
         </BarChart>
       </ResponsiveContainer>
-    </div>
+    </Box>
   )
 }

@@ -152,7 +152,14 @@ export default function CampaignDetailsPage() {
     setDebouncedSearchTerm('')
   }
 
-  const maxCommission = campaign?.maxCommission || 0
+  const campaignCommission = useMemo(() => {
+    if (!campaign?.commission) return 0
+    const commission =
+      typeof campaign.commission === 'string'
+        ? parseFloat(campaign.commission)
+        : campaign.commission
+    return isNaN(commission) ? 0 : commission
+  }, [campaign?.commission])
 
   if (!router.isReady || campaignsLoading) {
     return (
@@ -227,7 +234,7 @@ export default function CampaignDetailsPage() {
                   <ShimmerBadge
                     icon={'/assets/icons/extra-commission.svg'}
                     text="Comissões de"
-                    percentage={formatPercentage(maxCommission)}
+                    percentage={formatPercentage(campaignCommission)}
                   />
                 </HStack>
               </Flex>

@@ -42,10 +42,8 @@ interface CampaignCardProps {
   }[]
 
   status?: string
-
-  maxCommission?: number
-
   commission?: string | number
+  viewType?: 'affiliate' | 'brand'
 }
 
 export function CampaignCard({
@@ -55,8 +53,10 @@ export function CampaignCard({
   periodEnd,
   imageUrl,
   products,
-  maxCommission,
+  creatives = [],
+  status = 'active',
   commission,
+  viewType = 'affiliate',
 }: CampaignCardProps) {
   const router = useRouter()
   const scrollContainerRef = useRef<HTMLDivElement>(null)
@@ -176,41 +176,9 @@ export function CampaignCard({
       }
     }
 
-    if (
-      maxCommission !== undefined &&
-      maxCommission !== null &&
-      maxCommission > 0
-    ) {
-      console.log(
-        `📊 CampaignCard: Usando maxCommission fornecido = ${maxCommission}%`
-      )
-      return maxCommission
-    }
-
-    if (!products || products.length === 0) {
-      console.log('⚠️ CampaignCard: Nenhum produto para calcular comissão')
-      return 0
-    }
-
-    const productsWithCommission = products.filter(
-      (p) => p.commissionPercentage > 0
-    )
-
-    if (productsWithCommission.length === 0) {
-      console.log('⚠️ CampaignCard: Nenhum produto com comissão válida')
-      return 0
-    }
-
-    const calculatedMax = Math.max(
-      ...productsWithCommission.map((p) => p.commissionPercentage)
-    )
-
-    console.log(
-      `📊 CampaignCard: Maior comissão calculada dos produtos = ${calculatedMax}% (entre ${productsWithCommission.length} produtos)`
-    )
-
-    return calculatedMax
-  }, [commission, maxCommission, products])
+    console.log('⚠️ CampaignCard: Nenhuma comissão definida para a campanha')
+    return 0
+  }, [commission])
 
   return (
     <Box
@@ -402,7 +370,7 @@ export function CampaignCard({
             color="#131D53"
             bgGradient="linear-gradient(180deg, #f5f9fe 47.86%, #d5e9ff 123.81%)"
             shadow="0px 0px 0px 1px #99c7ff inset, 0px 0px 0px 2px #fff inset"
-            onClick={() => router.push(`/affiliate/campaigns/${id}`)}
+            onClick={() => router.push(`/${viewType}/campaigns/${id}`)}
           >
             Ver Campanha
           </Button>

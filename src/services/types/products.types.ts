@@ -32,6 +32,7 @@ export interface ProductItem {
   sku: string
   price: number
   commission: number
+  featured?: boolean
   short_url: string | null
   utm_url: string | null
   created_at?: string
@@ -53,4 +54,15 @@ export interface ProductsFilters {
   product?: string
   featured?: string
   orderBy?: string
+}
+
+export interface UpdateProductRequest {
+  id: number
+  commission?: number
+  url?: string
+  featured?: boolean
+}
+
+export interface UpdateProductResponse extends DefaultResponse, ErrorResponse {
+  data: ProductItem
 }

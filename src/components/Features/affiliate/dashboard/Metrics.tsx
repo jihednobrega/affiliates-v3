@@ -1,5 +1,13 @@
 import { useMemo, memo } from 'react'
-import { Box, Skeleton, SkeletonCircle } from '@chakra-ui/react'
+import {
+  Box,
+  Flex,
+  Grid,
+  Image,
+  Skeleton,
+  SkeletonCircle,
+  Text,
+} from '@chakra-ui/react'
 import { TrendingUp, TrendingDown } from 'lucide-react'
 import { DashboardComponentProps } from '@/types/dashboard.types'
 import { useDashboard } from '@/hooks/useDashboard'
@@ -18,25 +26,37 @@ export function Metrics({ dateRange }: DashboardComponentProps) {
     useDashboard(dateRange)
 
   const SkeletonCard = () => (
-    <div className="p-3 bg-white flex flex-col gap-3 border border-[#dee6f2] rounded-xl container-shadow">
-      <div className="flex items-center gap-3">
+    <Flex
+      p={3}
+      bg="white"
+      flexDirection="column"
+      gap={3}
+      border="1px solid"
+      borderColor="#dee6f2"
+      borderRadius="xl"
+      className="container-shadow"
+    >
+      <Flex align="center" gap={3}>
         <SkeletonCircle size="6" />
         <Skeleton height="12px" width="80px" />
-      </div>
-      <div className="flex items-center gap-2">
+      </Flex>
+      <Flex align="center" gap={2}>
         <Skeleton height="14px" width="60px" />
         <Skeleton height="16px" width="40px" borderRadius="4px" />
-      </div>
-    </div>
+      </Flex>
+    </Flex>
   )
 
   if (isLoadingMetrics) {
     return (
-      <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+      <Grid
+        templateColumns={{ base: 'repeat(2, 1fr)', md: 'repeat(3, 1fr)' }}
+        gap={2}
+      >
         {Array.from({ length: 6 }).map((_, index) => (
           <SkeletonCard key={index} />
         ))}
-      </div>
+      </Grid>
     )
   }
 
@@ -52,42 +72,69 @@ export function Metrics({ dateRange }: DashboardComponentProps) {
       const trendData = useMemo(() => {
         const isPositive = metric.growth >= 0
         const TrendIcon = isPositive ? TrendingUp : TrendingDown
-        const trendBg = isPositive ? 'bg-[#d4fce2]' : 'bg-[#fed7d7]'
-        const trendColor = isPositive ? 'text-[#008e5a]' : 'text-[#e53e3e]'
+        const trendBg = isPositive ? '#d4fce2' : '#fed7d7'
+        const trendColor = isPositive ? '#008e5a' : '#e53e3e'
 
         return { TrendIcon, trendBg, trendColor, isPositive }
       }, [metric.growth])
 
       return (
-        <div
+        <Flex
           key={`${metric.label}-${index}`}
-          className="p-3 bg-white flex flex-col gap-3 border border-[#dee6f2] rounded-xl container-shadow"
+          p={3}
+          bg="white"
+          flexDirection="column"
+          gap={3}
+          border="1px solid"
+          borderColor="#dee6f2"
+          borderRadius="xl"
+          className="container-shadow"
         >
-          <div className="flex items-center gap-3">
-            <div className="bg-[#dfefff] w-6 h-6 flex items-center justify-center rounded-sm p-0.5">
-              <img src={icon} alt={metric.label} />
-            </div>
-            <span className="text-xs text-[#131d5399]">{metric.label}</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <p className="text-sm text-[#131d53]">{metric.displayText}</p>
+          <Flex align="center" gap={3}>
+            <Flex
+              bg="#dfefff"
+              w={6}
+              h={6}
+              align="center"
+              justify="center"
+              borderRadius="sm"
+              p={0.5}
+            >
+              <Image src={icon} alt={metric.label} />
+            </Flex>
+            <Text fontSize="xs" color="#131d5399">
+              {metric.label}
+            </Text>
+          </Flex>
+          <Flex align="center" gap={2}>
+            <Text fontSize="sm" color="#131d53">
+              {metric.displayText}
+            </Text>
             {metric.growth !== 0 && !isNaN(metric.growth) && (
-              <div
-                className={`flex items-center gap-1 py-0.5 px-1 ${trendData.trendBg} rounded-sm`}
+              <Flex
+                align="center"
+                gap={1}
+                py={0.5}
+                px={1}
+                bg={trendData.trendBg}
+                borderRadius="sm"
               >
-                <trendData.TrendIcon
+                <Box
+                  as={trendData.TrendIcon}
                   size={12}
-                  className={trendData.trendColor}
+                  color={trendData.trendColor}
                 />
-                <small
-                  className={`font-semibold text-[10px] ${trendData.trendColor}`}
+                <Text
+                  fontWeight="semibold"
+                  fontSize="10px"
+                  color={trendData.trendColor}
                 >
                   {Math.abs(metric.growth).toFixed(1)}%
-                </small>
-              </div>
+                </Text>
+              </Flex>
             )}
-          </div>
-        </div>
+          </Flex>
+        </Flex>
       )
     }
   )
@@ -96,7 +143,10 @@ export function Metrics({ dateRange }: DashboardComponentProps) {
 
   return (
     <>
-      <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+      <Grid
+        templateColumns={{ base: 'repeat(2, 1fr)', md: 'repeat(3, 1fr)' }}
+        gap={2}
+      >
         {processedMetrics.map((metric, index) => (
           <MetricCard
             key={`${metric.label}-${index}`}
@@ -110,7 +160,7 @@ export function Metrics({ dateRange }: DashboardComponentProps) {
             Nenhum dado disponível para o período selecionado
           </Box>
         )}
-      </div>
+      </Grid>
     </>
   )
 }

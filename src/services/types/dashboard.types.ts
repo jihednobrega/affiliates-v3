@@ -20,13 +20,7 @@ interface AffiliateDashboardStatistics {
 }
 
 export interface GetMainMetricsRequest {
-  /**
-   * Format: `Y-m-d:Y-m-d`
-   */
   interval: string
-  /**
-   * Format: `Y-m-d:Y-m-d`
-   */
   previous: string
 }
 

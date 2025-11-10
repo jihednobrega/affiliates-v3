@@ -1,12 +1,12 @@
 export interface DefaultResponse {
-	success: boolean;
-	message: string;
+  success: boolean
+  message: string
 }
 
 export interface ErrorResponse {
-	errors?: Error;
+  errors?: Error
 }
 
 type Error = {
-	[key: string]: string[];
-};
+  [key: string]: string[]
+}

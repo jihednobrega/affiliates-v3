@@ -168,6 +168,19 @@ export default function Campaigns() {
 
   const isInitialLoading = loading && campaigns.length === 0
 
+  const formatDate = (dateString: string) => {
+    if (dateString.includes('/')) {
+      return dateString
+    }
+
+    const date = new Date(dateString)
+    return date.toLocaleDateString('pt-BR', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+    })
+  }
+
   if (isInitialLoading) {
     return (
       <>
@@ -512,7 +525,6 @@ export default function Campaigns() {
                     products={campaign.products}
                     creatives={campaign.creatives || []}
                     status={campaign.status || 'active'}
-                    maxCommission={campaign.maxCommission}
                     commission={campaign.commission}
                   />
                 ))}
@@ -548,7 +560,6 @@ export default function Campaigns() {
                     products={campaign.products}
                     creatives={campaign.creatives || []}
                     status={campaign.status || 'active'}
-                    maxCommission={campaign.maxCommission}
                     commission={campaign.commission}
                   />
                 ))}
