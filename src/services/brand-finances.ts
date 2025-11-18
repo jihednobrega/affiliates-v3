@@ -3,7 +3,6 @@ import {
   GetBrandFinancesRequest,
   GetBrandFinancesResponse,
   ExportBrandFinancesRequest,
-  ExportBrandFinancesResponse,
 } from './types/brand-finances.types'
 
 /**
@@ -51,7 +50,7 @@ export class BrandFinancesService {
     request: ExportBrandFinancesRequest
   ): Promise<{ response: any; status: number }> {
     try {
-      const { period, fields } = request
+      const { period, fields, brand_id } = request
 
       const { data, status: statusCode } = await api({
         url: `/brands/finances/export`,
@@ -60,6 +59,7 @@ export class BrandFinancesService {
         params: {
           period,
           fields: fields || undefined,
+          brand_id: brand_id || undefined,
         },
       })
 

@@ -125,3 +125,12 @@ export function useAcademy() {
     error: categories.error || trainings.error,
   }
 }
+
+export function useHasAcademyAccess() {
+  const { data, isLoading } = useTrainings()
+
+  return {
+    hasAccess: (data?.list?.length ?? 0) > 0,
+    isLoading,
+  }
+}

@@ -13,12 +13,16 @@ import {
   Package,
   Ticket,
   Trophy,
+  DollarSign,
+  Wallet,
+  CreditCard,
 } from 'lucide-react'
 import { usePathname } from 'next/navigation'
 import { Box, VStack, Skeleton, Stack } from '@chakra-ui/react'
 import { NavigationSection } from './NavigationSection'
 import { NavigationSection as NavigationSectionType } from './types'
 import { useAuth } from '@/hooks/useAuth'
+import { useHasAcademyAccess } from '@/hooks/useAcademy'
 
 interface NavigationContentProps {
   onClose?: () => void
@@ -27,6 +31,7 @@ interface NavigationContentProps {
 export function NavigationContent({ onClose }: NavigationContentProps) {
   const pathname = usePathname()
   const { user, isLoading } = useAuth()
+  const { hasAccess: hasAcademyAccess } = useHasAcademyAccess()
 
   const affiliateSections: NavigationSectionType[] = [
     {
@@ -67,11 +72,15 @@ export function NavigationContent({ onClose }: NavigationContentProps) {
     {
       label: 'Central do Afiliado',
       items: [
-        {
-          label: 'Affiliates Academy',
-          href: '/affiliate/academy/',
-          icon: GraduationCap,
-        },
+        ...(hasAcademyAccess
+          ? [
+              {
+                label: 'Affiliates Academy',
+                href: '/affiliate/academy/',
+                icon: GraduationCap,
+              },
+            ]
+          : []),
       ],
     },
     {
@@ -148,8 +157,45 @@ export function NavigationContent({ onClose }: NavigationContentProps) {
     },
   ]
 
+  const accountantSections: NavigationSectionType[] = [
+    {
+      label: 'Gestão',
+      items: [
+        {
+          label: 'Painel Geral',
+          href: '/accountant/dashboard',
+          icon: LayoutDashboard,
+        },
+      ],
+    },
+    {
+      label: 'Finanças',
+      items: [
+        {
+          label: 'Financeiro',
+          href: '/accountant/financial/',
+          icon: DollarSign,
+        },
+        {
+          label: 'Contas Digitais',
+          href: '/accountant/digital-accounts/',
+          icon: CreditCard,
+        },
+        {
+          label: 'Solicitações de Saque',
+          href: '/accountant/withdraw-requests/',
+          icon: Wallet,
+        },
+      ],
+    },
+  ]
+
   const sections =
-    user?.role === 'brand' || user?.role === 'agent' || user?.role === 'seller'
+    user?.role === 'accountant'
+      ? accountantSections
+      : user?.role === 'brand' ||
+        user?.role === 'agent' ||
+        user?.role === 'seller'
       ? brandSections
       : affiliateSections
 
@@ -173,15 +219,17 @@ export function NavigationContent({ onClose }: NavigationContentProps) {
   return (
     <Box bg="white" w="full" h="full" maxW="286px">
       <VStack spacing={8} p={4} pb={10} align="stretch">
-        {sections.map((section) => (
-          <NavigationSection
-            key={section.label}
-            label={section.label}
-            items={section.items}
-            pathname={pathname}
-            onClose={onClose}
-          />
-        ))}
+        {sections
+          .filter((section) => section.items.length > 0)
+          .map((section) => (
+            <NavigationSection
+              key={section.label}
+              label={section.label}
+              items={section.items}
+              pathname={pathname}
+              onClose={onClose}
+            />
+          ))}
       </VStack>
     </Box>
   )
