@@ -37,7 +37,11 @@ const brandNavItems = [
 export function NavBar() {
   const pathname = usePathname()
   const { user } = useAuth()
-  const { isOpen, onClose } = useDisclosure()
+  const { isOpen, onOpen, onClose } = useDisclosure()
+
+  if (user?.role === 'accountant') {
+    return null
+  }
 
   const navItems =
     user?.role === 'brand' || user?.role === 'agent' || user?.role === 'seller'

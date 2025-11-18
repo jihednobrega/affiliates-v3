@@ -1,4 +1,4 @@
-import { Wallet, LogOut, User, Hash, UserPlus } from 'lucide-react'
+import { Wallet, LogOut, User, Hash, Mail, Link, UserPlus } from 'lucide-react'
 import Image from 'next/image'
 import { useRouter } from 'next/router'
 import {
@@ -188,27 +188,31 @@ export function Header({ onOpen }: HeaderProps) {
                 minW="200px"
                 zIndex={9999}
               >
-                <MenuItem
-                  icon={<User size={16} />}
-                  fontSize="sm"
-                  color="#131D53"
-                  _hover={{ bg: '#F7FAFC' }}
-                  onClick={() => {
-                    const profilePath =
-                      user?.role === 'brand' ||
-                      user?.role === 'agent' ||
-                      user?.role === 'seller'
-                        ? '/brand/profile'
-                        : '/affiliate/profile'
-                    router.push(profilePath)
-                  }}
-                >
-                  Meu Perfil
-                </MenuItem>
+                {user?.role !== 'accountant' && (
+                  <>
+                    <MenuItem
+                      icon={<User size={16} />}
+                      fontSize="sm"
+                      color="#131D53"
+                      _hover={{ bg: '#F7FAFC' }}
+                      onClick={() => {
+                        const profilePath =
+                          user?.role === 'brand' ||
+                          user?.role === 'agent' ||
+                          user?.role === 'seller'
+                            ? '/brand/profile'
+                            : '/affiliate/profile'
+                        router.push(profilePath)
+                      }}
+                    >
+                      Meu Perfil
+                    </MenuItem>
+                    <MenuDivider borderColor="#DEE6F2" />
+                  </>
+                )}
 
                 {user?.role === 'affiliate' && user?.canHaveReferrals && (
                   <>
-                    <MenuDivider borderColor="#DEE6F2" />
                     <MenuItem
                       icon={<UserPlus size={16} />}
                       fontSize="sm"
@@ -218,6 +222,7 @@ export function Header({ onOpen }: HeaderProps) {
                     >
                       Convide um Novo afiliado
                     </MenuItem>
+                    <MenuDivider borderColor="#DEE6F2" />
                   </>
                 )}
 
@@ -225,7 +230,6 @@ export function Header({ onOpen }: HeaderProps) {
                   user?.canHaveReferrals &&
                   Boolean(user?.code) && (
                     <>
-                      <MenuDivider borderColor="#DEE6F2" />
                       <MenuItem
                         icon={<Hash size={16} />}
                         fontSize="sm"
@@ -235,10 +239,10 @@ export function Header({ onOpen }: HeaderProps) {
                       >
                         Código de afiliado
                       </MenuItem>
+                      <MenuDivider borderColor="#DEE6F2" />
                     </>
                   )}
 
-                <MenuDivider borderColor="#DEE6F2" />
                 <MenuItem
                   icon={<LogOut size={16} />}
                   fontSize="sm"

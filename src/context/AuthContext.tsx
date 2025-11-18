@@ -188,7 +188,10 @@ function AuthProvider({ children }: AuthProviderProps) {
         if (available_brands) {
           available_brands.forEach((brand: Brand) => handleSetBrands(brand))
         }
-        handleSetBrands(brand)
+
+        if (role !== 'accountant') {
+          handleSetBrands(brand)
+        }
         setLoggedIn(true)
 
         if (redirect) {

@@ -29,6 +29,7 @@ interface ExportFinancesModalProps {
   isOpen: boolean
   onClose: () => void
   currentPeriod: string
+  brandId?: number
   brandPeriods?: Record<string, string>
   customDateRange?: {
     start_date: string
@@ -57,6 +58,7 @@ export function ExportFinancesModal({
   isOpen,
   onClose,
   currentPeriod,
+  brandId,
   brandPeriods,
   customDateRange: parentCustomDateRange,
 }: ExportFinancesModalProps) {
@@ -174,6 +176,7 @@ export function ExportFinancesModal({
       const result = await brandFinancesService.exportBrandFinances({
         period: periodForApi,
         fields,
+        brand_id: brandId,
       })
 
       if (result.status === 200 && result.response) {
@@ -188,14 +191,6 @@ export function ExportFinancesModal({
 
         document.body.removeChild(link)
         window.URL.revokeObjectURL(url)
-
-        toast({
-          title: 'Exportação concluída!',
-          description: 'O download do arquivo foi iniciado.',
-          status: 'success',
-          duration: 3000,
-          isClosable: true,
-        })
 
         onClose()
         setSelectedFields([])
@@ -259,7 +254,6 @@ export function ExportFinancesModal({
 
         <ModalBody px={0} py={{ base: 3, md: 4 }}>
           <VStack spacing={4} align="stretch">
-            {/* Seletor de Período */}
             <Box>
               <Text fontSize="sm" fontWeight={500} color="#131D53" mb={2}>
                 Período{' '}
@@ -297,7 +291,6 @@ export function ExportFinancesModal({
                 </Box>
               )}
 
-              {/* Inputs de data customizada */}
               {showCustomDateInputs && (
                 <VStack spacing={3} mt={3} align="stretch">
                   <Box
@@ -383,7 +376,6 @@ export function ExportFinancesModal({
 
             <Divider />
 
-            {/* Campos para Exportar */}
             <Box>
               <Box
                 display="flex"

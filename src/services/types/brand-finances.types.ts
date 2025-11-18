@@ -47,6 +47,7 @@ export interface GetBrandFinancesResponse {
 export interface ExportBrandFinancesRequest {
   period: string
   fields?: string
+  brand_id?: number
 }
 
 export interface ExportBrandFinancesResponse {
